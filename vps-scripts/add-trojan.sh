@@ -80,6 +80,9 @@ except Exception as e:
     print("Gagal mengupdate config:", e)
 EOF
 
+
+# Simpan ke Database
+echo "${user} | ${password} | ${exp} | trojan" >> /etc/premdigital/xray-users.db
 systemctl restart xray > /dev/null 2>&1
 
 # Simpan riwayat user
