@@ -40,7 +40,7 @@ fi
 # Cek Status Service
 if systemctl is-active --quiet ssh; then ssh_st="${GREEN}ON${NC}"; else ssh_st="${RED}OFF${NC}"; fi
 if systemctl is-active --quiet xray; then xray_st="${GREEN}ON${NC}"; else xray_st="${RED}OFF${NC}"; fi
-web_st="${GREEN}ON${NC}" # Placeholder
+if systemctl is-active --quiet udp-custom || systemctl is-active --quiet badvpn-7100; then udp_st="${GREEN}ON${NC}"; else udp_st="${RED}OFF${NC}"; fi
 sys_health="${GREEN}GOOD${NC}"
 
 echo -e "${BLUE}====================================================${NC}"

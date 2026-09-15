@@ -97,4 +97,9 @@ connect = 127.0.0.1:109
 END_STUNNEL
 systemctl restart stunnel4 2>/dev/null
 
+
+echo -e "\e[33m[5/5] Memperbarui script menu utama...\e[0m"
+wget -qO /usr/local/bin/menu "https://raw.githubusercontent.com/tomm508/premdigitaltunnel-v2/main/vps-scripts/menu.sh"
+chmod +x /usr/local/bin/menu
+
 echo -e "\e[1;32mSemua Patch Selesai! Silakan cek menu nomor 9.\e[0m"
