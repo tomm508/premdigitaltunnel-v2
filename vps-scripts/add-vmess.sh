@@ -192,10 +192,11 @@ EOF
 link_up_ntls="vmess://$(echo -n "$json_up_ntls" | base64 -w 0 2>/dev/null || echo -n "$json_up_ntls" | base64)"
 
 # ==========================================
+# ==========================================
 # Output Hasil di Terminal
 # ==========================================
 clear
-echo -e "\e[1;32m✅ SUKSES CREATE AKUN VMESS\e[0m"
+echo -e "\e[1;32m✅  SUKSES CREATE AKUN VMESS\e[0m"
 echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo -e "👤 Username     : \e[1;33m${user}\e[0m"
 echo -e "🆔 UUID         : \e[1;37m${uuid}\e[0m"
@@ -205,24 +206,17 @@ echo -e "📅 Expired Pada : \e[1;31m${exp}\e[0m"
 echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo -e "🔒 \e[1;32m1. WS TLS (Port 443)\e[0m"
 echo -e "${link_ws_tls}"
-echo ""
 echo -e "🔓 \e[1;32m2. WS Non-TLS (Port 80)\e[0m"
 echo -e "${link_ws_ntls}"
-echo ""
 echo -e "⚡ \e[1;32m3. gRPC (Port 443)\e[0m"
 echo -e "${link_grpc}"
-echo ""
 echo -e "🚀 \e[1;32m4. HTTPUpgrade TLS (Port 443)\e[0m"
 echo -e "${link_up_tls}"
-echo ""
 echo -e "📡 \e[1;32m5. HTTPUpgrade Non-TLS (Port 80)\e[0m"
 echo -e "${link_up_ntls}"
 echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-echo -e "💡 Simpan link di atas untuk dimasukkan ke V2rayNG, Clash, atau Sing-box."
+echo -e "🪁 Terima Kasih telah menggunakan layanan kami!"
 echo ""
--e 
-
-echo -e "[33m====================================================[0m"
+echo -e "\e[33m====================================================\e[0m"
 read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
 menu
-
