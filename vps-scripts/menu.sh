@@ -11,21 +11,22 @@ NC='\e[0m'
 
 # Ambil IP dan RAM
 MYIP=$(curl -s -m 3 ipv4.icanhazip.com || echo "Unknown")
-RAM=$(free -m | awk 'NR==2{printf "%s/%sMB (%.2f%%)", $3,$2,$3*100/$2 }')
+RAM=$(free -m | awk 'NR==2{printf "%s/%sMB { %.2f%% }", $3,$2,$3*100/$2 }')
 
 # Ambil OS dan ISP
 OS=$(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | cut -d '"' -f 2)
 ISP=$(curl -s -m 5 ipinfo.io/org | cut -d " " -f 2- || echo "Unknown")
 
-# Ambil Bandwidth (Simple RX/TX dari Network Interface Default)
+# Ambil Bandwidth (Membaca tx/rx dari interface utama dan diformat otomatis KB/MB/GB/TB)
 IFACE=$(ip route | grep default | awk '{print $5}' | head -n1)
 if [ -n "$IFACE" ] && [ -f /sys/class/net/$IFACE/statistics/rx_bytes ]; then
     RX=$(cat /sys/class/net/$IFACE/statistics/rx_bytes)
     TX=$(cat /sys/class/net/$IFACE/statistics/tx_bytes)
-    # Konversi ke Megabyte (MB) untuk menghindari bash float error
-    RX_MB=$((RX / 1048576))
-    TX_MB=$((TX / 1048576))
-    BWIDTH="DL: ${RX_MB} MB | UL: ${TX_MB} MB"
+    
+    # Fungsi konversi bytes ke human readable (KB, MB, GB, TB)
+    TX_FORMAT=$(echo $TX | awk '{ split("B KB MB GB TB", v); s=1; while($1>1024){$1/=1024; s++} printf "%.2f %s", $1, v[s] }')
+    
+    BWIDTH="$TX_FORMAT { 5TB }"
 else
     BWIDTH="Unknown"
 fi
@@ -43,7 +44,7 @@ web_st="${GREEN}ON${NC}" # Placeholder
 sys_health="${GREEN}GOOD${NC}"
 
 echo -e "${BLUE}====================================================${NC}"
-echo -e "${GREEN}             PREMDIGITAL TUNNEL V2               ${NC}"
+echo -e "${GREEN}               PREMDIGITAL TUNNEL V2                ${NC}"
 echo -e "${BLUE}====================================================${NC}"
 echo -e " IP VPS    : ${CYAN}$MYIP${NC}"
 echo -e " OS        : ${CYAN}$OS${NC}"
@@ -52,9 +53,9 @@ echo -e " RAM Usage : ${CYAN}$RAM${NC}"
 echo -e " Bandwidth : ${CYAN}$BWIDTH${NC}"
 echo -e " Domain    : ${CYAN}$domain${NC}"
 echo -e "${BLUE}====================================================${NC}"
-echo -e " ╭────────────────────────────────────────────────╮"
-echo -e " │ SSH/WS: $ssh_st │ X-RAY: $xray_st │ WEB: $web_st │ $sys_health │"
-echo -e " ╰────────────────────────────────────────────────╯"
+echo -e "  ╭──────────────────────────────────────────────╮"
+echo -e "  │ SSH/WS: $ssh_st │ X-RAY: $xray_st │ WEB: $web_st │ $sys_health │"
+echo -e "  ╰──────────────────────────────────────────────╯"
 echo -e " ${YELLOW}[1]${NC} Creat SSH/WS"
 echo -e " ${YELLOW}[2]${NC} Creat Vmess"
 echo -e " ${YELLOW}[3]${NC} Creat Vless"
@@ -64,7 +65,7 @@ echo -e " ${YELLOW}[6]${NC} Delete Account { SSH/WS & Xray }"
 echo -e " ${YELLOW}[7]${NC} Change Domain"
 echo -e " ${YELLOW}[8]${NC} Web Connection Setting"
 echo -e " ${YELLOW}[9]${NC} Restart All Service"
-echo -e " ${YELLOW}[10]${NC} Hapus Script (Uninstall)"
+echo -e " ${YELLOW}[10]${NC} ❗Uninstall Script❗"
 echo -e " ${YELLOW}[0]${NC} Keluar"
 echo -e "${BLUE}====================================================${NC}"
 read -p " Pilih Menu [0-10] : " menu_num
