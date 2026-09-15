@@ -76,10 +76,6 @@ case $menu_num in
     3) bash /vps-scripts/add-vless.sh ;;
     4) bash /vps-scripts/add-trojan.sh ;;
     5) 
-        clear
-        echo -e "${BLUE}=== Akun SSH/WS ===${NC}"
-        awk -F: '($3>=1000)&&($1!="nobody"){print $1}' /etc/passwd | grep -v 'ubuntu'
-        echo -e "\n${BLUE}=== Akun Xray ===${NC}"
         bash /vps-scripts/list-account.sh
         ;;
     6) 
