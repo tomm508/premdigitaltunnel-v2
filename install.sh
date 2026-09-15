@@ -63,8 +63,12 @@ echo -e "\e[33m============================================\e[0m"
 apt-get update -y
 apt-get install -y wget curl python3 python3-pip
 
-# Input Domain & Telegram Data
-read -p "Masukkan Domain VPS Anda (Contoh: vpn.domain.com) [ENTER utk pakai IP]: " domain_input
+# PENTING: Karena script di-pipe melalui bash (wget | bash), perintah 'read' 
+# terkadang bentrok jika menggunakan input standar. 
+# Kita ubah pendekatannya dengan membaca langsung dari /dev/tty
+echo -n "Masukkan Domain VPS Anda (Contoh: vpn.domain.com) [ENTER utk pakai IP]: "
+read domain_input < /dev/tty
+
 if [ -n "$domain_input" ]; then
     echo "$domain_input" > /etc/vps-domain.txt
 else
@@ -75,8 +79,10 @@ else
     fi
 fi
 
-read -p "Masukkan BOT TOKEN Telegram Anda [ENTER utk skip]: " bot_token
-read -p "Masukkan CHAT ID Admin [ENTER utk skip]: " admin_id
+echo -n "Masukkan BOT TOKEN Telegram Anda [ENTER utk skip]: "
+read bot_token < /dev/tty
+echo -n "Masukkan CHAT ID Admin [ENTER utk skip]: "
+read admin_id < /dev/tty
 
 mkdir -p /vps-scripts
 cd /vps-scripts || exit
