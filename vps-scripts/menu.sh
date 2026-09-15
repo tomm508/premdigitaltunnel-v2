@@ -54,7 +54,7 @@ echo -e " Bandwidth : ${CYAN}$BWIDTH${NC}"
 echo -e " Domain    : ${CYAN}$domain${NC}"
 echo -e "${BLUE}====================================================${NC}"
 echo -e " ╭──────────────────────────────────────────────────╮"
-echo -e " │  SSH/WS: $ssh_st  │  X-RAY: $xray_st  │  WEB: $web_st  │  $sys_health   │"
+echo -e " │  SSH/WS: $ssh_st  │  X-RAY: $xray_st  │  UDP: $udp_st  │  $sys_health   │"
 echo -e " ╰──────────────────────────────────────────────────╯"
 echo -e " ${YELLOW}[1]${NC} Creat SSH/WS"
 echo -e " ${YELLOW}[2]${NC} Creat Vmess"
@@ -64,7 +64,7 @@ echo -e " ${YELLOW}[5]${NC} Account Summary { SSH/WS & Xray }"
 echo -e " ${YELLOW}[6]${NC} Delete Account { SSH/WS & Xray }"
 echo -e " ${YELLOW}[7]${NC} Change Domain"
 echo -e " ${YELLOW}[8]${NC} Web Connection Setting"
-echo -e " ${YELLOW}[9]${NC} Restart All Service"
+echo -e " ${YELLOW}[9]${NC} Service Status & Restart"
 echo -e " ${YELLOW}[10]${NC} ❗Uninstall Script❗"
 echo -e " ${YELLOW}[0]${NC} Keluar"
 echo -e "${BLUE}====================================================${NC}"
@@ -121,13 +121,7 @@ case $menu_num in
         fi
         ;;
     9) 
-        echo "Merestart layanan..."
-        systemctl restart xray ssh dropbear 2>/dev/null
-        echo -e "${GREEN}Restart Selesai!${NC}"
-        echo ""
-        echo -e "${YELLOW}====================================================${NC}"
-        read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
-        menu
+        bash /vps-scripts/cek-service.sh
         ;;
     10) 
         if [ -f /vps-scripts/uninstall.sh ]; then bash /vps-scripts/uninstall.sh; fi

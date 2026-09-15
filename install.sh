@@ -31,6 +31,7 @@ if [ "$1" == "--update-menu" ]; then
     wget -qO del-account.sh "${REPO_URL}/vps-scripts/del-account.sh"
     wget -qO menu.sh "${REPO_URL}/vps-scripts/menu.sh"
     wget -qO uninstall.sh "${REPO_URL}/vps-scripts/uninstall.sh"
+    wget -qO cek-service.sh "${REPO_URL}/vps-scripts/cek-service.sh"
 
     chmod +x *.sh
 
@@ -43,6 +44,7 @@ if [ "$1" == "--update-menu" ]; then
     cp list-account.sh /usr/bin/list-account
     cp del-account.sh /usr/bin/del-account
     cp menu.sh /usr/bin/menu
+cp cek-service.sh /usr/bin/cek-service
     chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu
 
     echo -e "\e[32m============================================\e[0m"
@@ -95,6 +97,7 @@ wget -qO list-account.sh "${REPO_URL}/vps-scripts/list-account.sh"
 wget -qO del-account.sh "${REPO_URL}/vps-scripts/del-account.sh"
 wget -qO menu.sh "${REPO_URL}/vps-scripts/menu.sh"
 wget -qO uninstall.sh "${REPO_URL}/vps-scripts/uninstall.sh"
+    wget -qO cek-service.sh "${REPO_URL}/vps-scripts/cek-service.sh"
 
 chmod +x *.sh
 
@@ -107,6 +110,7 @@ cp add-trojan.sh /usr/bin/add-trojan
 cp list-account.sh /usr/bin/list-account
 cp del-account.sh /usr/bin/del-account
 cp menu.sh /usr/bin/menu
+cp cek-service.sh /usr/bin/cek-service
 chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu
 
 
