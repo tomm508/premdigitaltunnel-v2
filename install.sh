@@ -153,53 +153,48 @@ import socket
 import threading
 import sys
 
-# Konfigurasi
 LISTENING_PORT = 80
 TARGET_PORT = 22
-TARGET_HOST = "127.0.0.1"
 
 def handle_client(client_socket):
+    target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        # Terima payload HTTP awal (Upgrade request)
-        request = client_socket.recv(4096).decode('utf-8', errors='ignore')
+        target_socket.connect(('127.0.0.1', TARGET_PORT))
         
-        # Kirim response 101 Switching Protocols jika diminta, atau abaikan dan langsung forward
-        if "HTTP/1.1" in request:
-            response = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n"
-            client_socket.sendall(response.encode())
+        # Baca Header HTTP (Untuk Payload)
+        request = client_socket.recv(8192).decode('utf-8', errors='ignore')
+        
+        # Respon 101 Switching Protocols yang lebih universal untuk HC/HI
+        response = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: HSmrc0sMlYUkAGmm5OPpG2HaGWk=\r\n\r\n"
+        client_socket.sendall(response.encode())
 
-        # Hubungkan ke server SSH lokal
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.connect((TARGET_HOST, TARGET_PORT))
-
-        def forward(source, destination):
-            try:
-                while True:
-                    data = source.recv(4096)
-                    if not data:
-                        break
-                    destination.sendall(data)
-            except:
-                pass
-            finally:
-                source.close()
-                destination.close()
-
-        threading.Thread(target=forward, args=(client_socket, server_socket)).start()
-        threading.Thread(target=forward, args=(server_socket, client_socket)).start()
-
+        # Mulai Forwarding Bidirectional
+        threading.Thread(target=forward, args=(client_socket, target_socket)).start()
+        threading.Thread(target=forward, args=(target_socket, client_socket)).start()
     except Exception as e:
         client_socket.close()
 
+def forward(source, destination):
+    try:
+        while True:
+            data = source.recv(8192)
+            if not data:
+                break
+            destination.sendall(data)
+    except:
+        pass
+    finally:
+        source.close()
+        destination.close()
+
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server.bind(("0.0.0.0", LISTENING_PORT))
+server.bind(('0.0.0.0', LISTENING_PORT))
 server.listen(100)
 
-print(f"Websocket SSH Listening on port {LISTENING_PORT}")
 while True:
-    client_sock, addr = server.accept()
-    threading.Thread(target=handle_client, args=(client_sock,)).start()
+    client, addr = server.accept()
+    threading.Thread(target=handle_client, args=(client,)).start()
 END_WS
 chmod +x /usr/local/bin/ws-openssh
 
