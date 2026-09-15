@@ -52,6 +52,7 @@ echo -e " ISP       : ${CYAN}$ISP${NC}"
 echo -e " RAM Usage : ${CYAN}$RAM${NC}"
 echo -e " Bandwidth : ${CYAN}$BWIDTH${NC}"
 echo -e " Domain    : ${CYAN}$domain${NC}"
+echo -e "${BLUE}====================================================${NC}"
 echo -e " ╭──────────────────────────────────────────────────╮"
 echo -e " │  SSH/WS: $ssh_st  │  X-RAY: $xray_st  │  WEB: $web_st  │  $sys_health   │"
 echo -e " ╰──────────────────────────────────────────────────╯"
@@ -70,23 +71,23 @@ echo -e "${BLUE}====================================================${NC}"
 read -p " Pilih Menu [0-10] : " menu_num
 
 case $menu_num in
-    1) add-ssh ;;
-    2) add-vmess ;;
-    3) add-vless ;;
-    4) add-trojan ;;
+    1) bash /vps-scripts/add-ssh.sh ;;
+    2) bash /vps-scripts/add-vmess.sh ;;
+    3) bash /vps-scripts/add-vless.sh ;;
+    4) bash /vps-scripts/add-trojan.sh ;;
     5) 
         clear
         echo -e "${BLUE}=== Akun SSH/WS ===${NC}"
         awk -F: '($3>=1000)&&($1!="nobody"){print $1}' /etc/passwd | grep -v 'ubuntu'
         echo -e "\n${BLUE}=== Akun Xray ===${NC}"
-        list-account 
+        bash /vps-scripts/list-account.sh
         ;;
     6) 
         echo -e "\n${YELLOW}Pilih Tipe Akun yang akan dihapus:${NC}"
         echo "1. Akun SSH/WS"
         echo "2. Akun Xray (Vmess/Vless/Trojan)"
         read -p "Pilihan [1/2]: " del_opt
-        if [ "$del_opt" == "1" ]; then del-ssh; else del-account; fi
+        if [ "$del_opt" == "1" ]; then bash /vps-scripts/del-ssh.sh; else bash /vps-scripts/del-account.sh; fi
         ;;
     7)
         read -p "Masukkan Domain Baru: " new_domain
@@ -110,7 +111,6 @@ case $menu_num in
         read -p "Pilih [0-2]: " web_opt
         if [ "$web_opt" == "1" ]; then
             echo -e "${CYAN}Mengunduh script worker Firebase... (Fitur ini sedang disempurnakan)${NC}"
-            # Nanti bisa diisi bash download file worker
         fi
         ;;
     9) 
