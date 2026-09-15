@@ -146,72 +146,25 @@ systemctl restart stunnel4
 # INSTALL PYSW (PYTHON SSH WEBSOCKET)
 # ==========================================
 echo -e "\e[33m[INFO] Menginstal Python SSH Websocket (Port 80)...\e[0m"
-apt-get install -y python3 dropbear
-cat > /usr/local/bin/ws-openssh << 'END_WS'
-#!/usr/bin/env python3
-import socket
-import threading
-import sys
-
-LISTENING_PORT = 80
-TARGET_PORT = 22
-
-def handle_client(client_socket):
-    target_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        target_socket.connect(('127.0.0.1', TARGET_PORT))
-        
-        # Baca Header HTTP (Untuk Payload)
-        request = client_socket.recv(8192).decode('utf-8', errors='ignore')
-        
-        # Respon 101 Switching Protocols yang lebih universal untuk HC/HI
-        response = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: HSmrc0sMlYUkAGmm5OPpG2HaGWk=\r\n\r\n"
-        client_socket.sendall(response.encode())
-
-        # Mulai Forwarding Bidirectional
-        threading.Thread(target=forward, args=(client_socket, target_socket)).start()
-        threading.Thread(target=forward, args=(target_socket, client_socket)).start()
-    except Exception as e:
-        client_socket.close()
-
-def forward(source, destination):
-    try:
-        while True:
-            data = source.recv(8192)
-            if not data:
-                break
-            destination.sendall(data)
-    except:
-        pass
-    finally:
-        source.close()
-        destination.close()
-
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server.bind(('0.0.0.0', LISTENING_PORT))
-server.listen(100)
-
-while True:
-    client, addr = server.accept()
-    threading.Thread(target=handle_client, args=(client,)).start()
-END_WS
+apt-get install -y python3
+wget -qO /usr/local/bin/ws-openssh "${REPO_URL}/vps-scripts/ws-openssh.py"
 chmod +x /usr/local/bin/ws-openssh
 
-cat > /etc/systemd/system/ws-openssh.service << 'END_SVC'
+cat > /etc/systemd/system/ws-openssh.service << 'END_WS_SVC'
 [Unit]
-Description=Python Websocket SSH
+Description=Python SSH Websocket Port 80
 After=network.target
 
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/ws-openssh
+ExecStart=/usr/bin/python3 /usr/local/bin/ws-openssh
 Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
-END_SVC
+END_WS_SVC
 
 systemctl daemon-reload
 systemctl enable ws-openssh >/dev/null 2>&1
