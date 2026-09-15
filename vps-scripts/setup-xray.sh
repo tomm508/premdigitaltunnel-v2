@@ -222,7 +222,7 @@ generate_default_config() {
       }
     },
     {
-      "port": 4430,
+      "port": 443,
       "listen": "127.0.0.1",
       "protocol": "vless",
       "settings": {
