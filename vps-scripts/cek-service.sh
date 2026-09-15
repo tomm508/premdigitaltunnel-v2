@@ -4,15 +4,22 @@ echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━
 echo -e "\e[1;33m          STATUS SEMUA LAYANAN            \e[0m"
 echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 
-services=("ssh" "dropbear" "stunnel4" "ws-openssh" "xray" "udp-custom" "badvpn-7100" "badvpn-7200" "badvpn-7300" "cron")
+services=("ssh" "dropbear" "stunnel4" "ws-openssh" "xray" "udp-custom" "cron")
 
 for svc in "${services[@]}"; do
     if systemctl is-active --quiet $svc; then
-        echo -e " 🔹 $svc \t: \e[1;32m[ RUNNING ]\e[0m"
+        printf " 🔹 %-15s : \e[1;32m[ RUNNING ]\e[0m\n" "$svc"
     else
-        echo -e " 🔹 $svc \t: \e[1;31m[ STOPPED / ERROR ]\e[0m"
+        printf " 🔹 %-15s : \e[1;31m[ STOPPED / ERROR ]\e[0m\n" "$svc"
     fi
 done
+
+# Badvpn dipersingkat
+if systemctl is-active --quiet badvpn-7100 && systemctl is-active --quiet badvpn-7200 && systemctl is-active --quiet badvpn-7300; then
+    printf " 🔹 %-15s : \e[1;32m[ RUNNING ]\e[0m\n" "badvpn (71-73)"
+else
+    printf " 🔹 %-15s : \e[1;31m[ STOPPED / ERROR ]\e[0m\n" "badvpn (71-73)"
+fi
 echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo ""
 echo -e "\e[33m[1]\e[0m Restart Semua Layanan (Fix Error)"
