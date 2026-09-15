@@ -1,9 +1,11 @@
-#!/bin/bash
+import os
+
+patch_script = """#!/bin/bash
 # ==========================================
 # SUPER PATCH: FIX WEBSOCKET, DROPBEAR & UDP-CUSTOM
 # ==========================================
 
-echo -e "\e[33m[1/4] Menginstal Dropbear & Menjalankannya...\e[0m"
+echo -e "\\e[33m[1/4] Menginstal Dropbear & Menjalankannya...\\e[0m"
 apt-get update -y
 apt-get install -y dropbear
 cat > /etc/default/dropbear << 'END_DROPBEAR'
@@ -16,7 +18,7 @@ END_DROPBEAR
 systemctl restart dropbear 2>/dev/null
 systemctl enable dropbear 2>/dev/null
 
-echo -e "\e[33m[2/4] Mengunduh UDP-Custom Binary yang valid...\e[0m"
+echo -e "\\e[33m[2/4] Mengunduh UDP-Custom Binary yang valid...\\e[0m"
 systemctl stop udp-custom 2>/dev/null
 wget -qO /usr/local/bin/udp-custom "https://raw.githubusercontent.com/noobconner21/UDP-Custom-Script/main/udp-custom-linux-amd64"
 chmod +x /usr/local/bin/udp-custom
@@ -54,7 +56,7 @@ systemctl daemon-reload
 systemctl enable udp-custom >/dev/null 2>&1
 systemctl restart udp-custom
 
-echo -e "\e[33m[3/4] Memperbaiki Python Websocket (Select Multiplexer Anti-Timeout)...\e[0m"
+echo -e "\\e[33m[3/4] Memperbaiki Python Websocket (Select Multiplexer Anti-Timeout)...\\e[0m"
 cat > /usr/local/bin/ws-openssh << 'END_WSS'
 #!/usr/bin/python3
 import socket, threading, select, sys
@@ -64,11 +66,7 @@ LISTENING_PORT = 80
 BUFLEN = 8192
 TIMEOUT = 60
 DEFAULT_HOST = '127.0.0.1:22'
-RESPONSE = b'HTTP/1.1 101 Switching Protocols
-Upgrade: websocket
-Connection: Upgrade
-
-'
+RESPONSE = b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n'
 
 class Server(threading.Thread):
     def __init__(self, host, port):
@@ -155,8 +153,7 @@ class ConnectionHandler(threading.Thread):
             aux = head_str.find(f'{header}: ')
             if aux == -1: return ''
             start = aux + len(header) + 2
-            end = head_str.find('
-', start)
+            end = head_str.find('\r\n', start)
             return head_str[start:end] if end != -1 else ''
         except: return ''
 
@@ -197,7 +194,7 @@ chmod +x /usr/local/bin/ws-openssh
 systemctl daemon-reload
 systemctl restart ws-openssh stunnel4
 
-echo -e "\e[33m[4/4] Memastikan Port Stunnel4 Aktif di 443 & 8443...\e[0m"
+echo -e "\\e[33m[4/4] Memastikan Port Stunnel4 Aktif di 443 & 8443...\\e[0m"
 cat > /etc/stunnel/stunnel.conf << 'END_STUNNEL'
 cert = /etc/xray/xray.crt
 key = /etc/xray/xray.key
@@ -216,4 +213,10 @@ connect = 127.0.0.1:109
 END_STUNNEL
 systemctl restart stunnel4 2>/dev/null
 
-echo -e "\e[1;32mSemua Patch Selesai! Layanan Dropbear, UDP Custom, dan WS-OpenSSH telah diperbarui.\e[0m"
+echo -e "\\e[1;32mSemua Patch Selesai! Layanan Dropbear, UDP Custom, dan WS-OpenSSH telah diperbarui.\\e[0m"
+"""
+
+with open("/app/applet/patch_vps.sh", "w") as f:
+    f.write(patch_script)
+
+print("patch_vps.sh updated with full fix")

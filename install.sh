@@ -146,7 +146,7 @@ systemctl restart stunnel4
 # INSTALL PYSW (PYTHON SSH WEBSOCKET)
 # ==========================================
 echo -e "\e[33m[INFO] Menginstal Python SSH Websocket (Port 80)...\e[0m"
-apt-get install -y python3
+apt-get install -y python3 dropbear
 cat > /usr/local/bin/ws-openssh << 'END_WS'
 #!/usr/bin/env python3
 import socket
@@ -290,7 +290,7 @@ cd /root || exit
 # ==========================================
 echo -e "\e[33m[INFO] Menginstal UDP Custom...\e[0m"
 wget -qO /usr/local/bin/udp-custom "https://raw.githubusercontent.com/tomm508/premdigitaltunnel-v2/main/bin/udp-custom" || \
-wget -qO /usr/local/bin/udp-custom "https://raw.githubusercontent.com/Bvpn-net/Xray_Vpn/main/udp-custom"
+wget -qO /usr/local/bin/udp-custom "https://raw.githubusercontent.com/noobconner21/UDP-Custom-Script/main/udp-custom-linux-amd64"
 chmod +x /usr/local/bin/udp-custom
 mkdir -p /etc/udp
 
