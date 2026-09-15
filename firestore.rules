@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Validation Helpers
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidVpsNode(data) {
+      return data.keys().hasAll(['name', 'ip', 'status'])
+        && data.name is string && data.name.size() <= 100
+        && data.ip is string && data.ip.size() <= 45
+        && data.status is string && data.status.size() <= 20
+        && (!('city' in data) || (data.city is string && data.city.size() <= 100))
+        && (!('countryCode' in data) || (data.countryCode is string && data.countryCode.size() <= 5))
+        && (!('onlineUsers' in data) || data.onlineUsers is int)
+        && (!('sshOnline' in data) || data.sshOnline is int)
+        && (!('xrayOnline' in data) || data.xrayOnline is int)
+        && (!('cpuLoad' in data) || data.cpuLoad is int)
+        && (!('ramUsage' in data) || data.ramUsage is int)
+        && (!('lastHeartbeat' in data) || (data.lastHeartbeat is string && data.lastHeartbeat.size() <= 50));
+    }
+
+    function isValidVpsCommand(data) {
+      return data.keys().hasAll(['serverId', 'status', 'command', 'username'])
+        && data.serverId is string && data.serverId.size() <= 100
+        && data.status is string && data.status.matches('^(pending|success|failed)$')
+        && data.command is string && data.command.size() <= 50
+        && data.username is string && data.username.size() <= 100
+        && (!('password' in data) || (data.password is string && data.password.size() <= 100))
+        && (!('protocol' in data) || (data.protocol is string && data.protocol.size() <= 20))
+        && (!('activeDays' in data) || data.activeDays is int)
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
+    // vps_nodes
+    match /vps_nodes/{nodeId} {
+      allow get: if isValidId(nodeId);
+      allow list: if true;
+      allow create: if isValidId(nodeId) && isValidVpsNode(incoming());
+      // The REST API uses PATCH to update. We allow it if the resulting document is valid.
+      allow update: if isValidId(nodeId) && isValidVpsNode(incoming());
+    }
+
+    // vps_commands
+    match /vps_commands/{commandId} {
+      allow get: if isValidId(commandId);
+      allow list: if true;
+      allow create: if isValidId(commandId) && isValidVpsCommand(incoming());
+      allow update: if isValidId(commandId) && isValidVpsCommand(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['status'])
+      );
+    }
+  }
+}

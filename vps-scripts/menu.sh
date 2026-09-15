@@ -64,7 +64,7 @@ case $menu_num in
         systemctl restart ssh
         systemctl restart dropbear 2>/dev/null
         systemctl restart stunnel4 2>/dev/null
-        systemctl restart vps-bot 2>/dev/null
+        
         echo -e "${GREEN}Restart Selesai!${NC}"
         ;;
     10) 

@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "VpsNode": {
+      "title": "VpsNode",
+      "description": "Represents a VPS node sending telemetry.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "ip": { "type": "string", "maxLength": 45 },
+        "city": { "type": "string", "maxLength": 100 },
+        "countryCode": { "type": "string", "maxLength": 5 },
+        "onlineUsers": { "type": "integer" },
+        "sshOnline": { "type": "integer" },
+        "xrayOnline": { "type": "integer" },
+        "cpuLoad": { "type": "integer" },
+        "ramUsage": { "type": "integer" },
+        "status": { "type": "string", "maxLength": 20 },
+        "lastHeartbeat": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["name", "ip", "status"]
+    },
+    "VpsCommand": {
+      "title": "VpsCommand",
+      "description": "Represents a command queued for a VPS node.",
+      "type": "object",
+      "properties": {
+        "serverId": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["pending", "success", "failed"], "maxLength": 20 },
+        "command": { "type": "string", "maxLength": 50 },
+        "username": { "type": "string", "maxLength": 100 },
+        "password": { "type": "string", "maxLength": 100 },
+        "protocol": { "type": "string", "maxLength": 20 },
+        "activeDays": { "type": "integer" },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["serverId", "status", "command", "username"]
+    }
+  },
+  "firestore": {
+    "/vps_nodes/{nodeId}": {
+      "schema": { "$ref": "#/entities/VpsNode" },
+      "description": "Stores VPS nodes and their current status."
+    },
+    "/vps_commands/{commandId}": {
+      "schema": { "$ref": "#/entities/VpsCommand" },
+      "description": "Stores commands to be executed by VPS nodes."
+    }
+  }
+}
