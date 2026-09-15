@@ -95,6 +95,10 @@ case $menu_num in
             echo "$new_domain" > /etc/vps-domain.txt
             echo -e "${GREEN}Domain berhasil diubah! Restarting...${NC}"
             systemctl restart xray
+            echo ""
+            echo -e "${YELLOW}====================================================${NC}"
+            read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
+            menu
         fi
         ;;
     8)
@@ -111,16 +115,31 @@ case $menu_num in
         read -p "Pilih [0-2]: " web_opt
         if [ "$web_opt" == "1" ]; then
             echo -e "${CYAN}Mengunduh script worker Firebase... (Fitur ini sedang disempurnakan)${NC}"
+            echo ""
+            read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
+            menu
+        elif [ "$web_opt" == "0" ]; then
+            menu
+        else
+            menu
         fi
         ;;
     9) 
         echo "Merestart layanan..."
         systemctl restart xray ssh dropbear 2>/dev/null
         echo -e "${GREEN}Restart Selesai!${NC}"
+        echo ""
+        echo -e "${YELLOW}====================================================${NC}"
+        read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
+        menu
         ;;
     10) 
         if [ -f /vps-scripts/uninstall.sh ]; then bash /vps-scripts/uninstall.sh; fi
         ;;
     0) clear ; exit 0 ;;
-    *) echo -e "${RED}Pilihan tidak valid!${NC}" ;;
+    *) 
+        echo -e "${RED}Pilihan tidak valid!${NC}" 
+        sleep 2
+        menu
+        ;;
 esac

@@ -16,3 +16,9 @@ fi
 
 userdel -f $username
 echo -e "\e[32mAkun '$username' berhasil dihapus!\e[0m"
+-e 
+
+echo -e "[33m====================================================[0m"
+read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
+menu
+

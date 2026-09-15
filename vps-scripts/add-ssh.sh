@@ -47,3 +47,9 @@ echo -e "\e[32m====================================================\e[0m"
 echo -e "Payload WS:"
 echo -e "GET / HTTP/1.1[crlf]Host: $domain[crlf]Upgrade: websocket[crlf][crlf]"
 echo -e "\e[36m====================================================\e[0m"
+-e 
+
+echo -e "[33m====================================================[0m"
+read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
+menu
+

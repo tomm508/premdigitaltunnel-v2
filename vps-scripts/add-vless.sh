@@ -131,3 +131,9 @@ echo -e "${link_up_ntls}"
 echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo -e "💡 Simpan link di atas untuk dimasukkan ke V2rayNG, Clash, atau Sing-box."
 echo ""
+-e 
+
+echo -e "[33m====================================================[0m"
+read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
+menu
+

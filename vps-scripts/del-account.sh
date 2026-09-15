@@ -58,3 +58,9 @@ if [[ $found_ssh -eq 0 && $found_xray -eq 0 ]]; then
 else
     echo -e "\e[1;32m✅ Akun '${user}' berhasil dihapus dari server!\e[0m"
 fi
+-e 
+
+echo -e "[33m====================================================[0m"
+read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
+menu
+
