@@ -1,18 +1,45 @@
 #!/bin/bash
 clear
-echo -e "\e[36m====================================================\e[0m"
-echo -e "\e[32m             PREMDIGITAL TUNNELING MENU             \e[0m"
-echo -e "\e[36m====================================================\e[0m"
-echo -e " \e[33m[1]\e[0m Tambah Akun Vmess"
-echo -e " \e[33m[2]\e[0m Tambah Akun Vless"
-echo -e " \e[33m[3]\e[0m Tambah Akun Trojan"
-echo -e " \e[33m[4]\e[0m Daftar Akun Aktif"
-echo -e " \e[33m[5]\e[0m Hapus Akun"
-echo -e " \e[33m[6]\e[0m Restart Service (Xray & Bot)"
-echo -e " \e[33m[7]\e[0m Hapus Script (Uninstall)"
-echo -e " \e[33m[0]\e[0m Keluar"
-echo -e "\e[36m====================================================\e[0m"
-read -p " Pilih Menu [0-7] : " menu_num
+
+# Warna dan Teks
+GREEN='\e[32m'
+BLUE='\e[36m'
+YELLOW='\e[33m'
+CYAN='\e[36m'
+RED='\e[31m'
+NC='\e[0m' # No Color
+
+# Ambil IP dan RAM
+MYIP=$(curl -s -m 3 ipv4.icanhazip.com || echo "Unknown")
+RAM=$(free -m | awk 'NR==2{printf "%s/%sMB (%.2f%%)", $3,$2,$3*100/$2 }')
+
+# Ambil Domain
+if [ -f /etc/vps-domain.txt ]; then
+    domain=$(cat /etc/vps-domain.txt)
+else
+    domain="Belum diset"
+fi
+
+echo -e "${BLUE}====================================================${NC}"
+echo -e "${GREEN}             PREMDIGITAL TUNNELING MENU             ${NC}"
+echo -e "${BLUE}====================================================${NC}"
+echo -e " IP VPS    : ${CYAN}$MYIP${NC}"
+echo -e " Domain    : ${CYAN}$domain${NC}"
+echo -e " RAM Usage : ${CYAN}$RAM${NC}"
+echo -e "${BLUE}====================================================${NC}"
+echo -e ""
+echo -e " ${YELLOW}[1]${NC} Tambah Akun Vmess"
+echo -e " ${YELLOW}[2]${NC} Tambah Akun Vless"
+echo -e " ${YELLOW}[3]${NC} Tambah Akun Trojan"
+echo -e " ${YELLOW}[4]${NC} Daftar Akun Aktif (All Protocol)"
+echo -e " ${YELLOW}[5]${NC} Hapus Akun"
+echo -e " ${YELLOW}[6]${NC} Edit Domain VPS"
+echo -e " ${YELLOW}[7]${NC} Restart Service (Xray & Bot)"
+echo -e " ${YELLOW}[8]${NC} Hapus Script (Uninstall)"
+echo -e " ${YELLOW}[0]${NC} Keluar"
+echo -e ""
+echo -e "${BLUE}====================================================${NC}"
+read -p " Pilih Menu [0-8] : " menu_num
 
 case $menu_num in
     1) add-vmess ;;
@@ -20,19 +47,30 @@ case $menu_num in
     3) add-trojan ;;
     4) list-account ;;
     5) del-account ;;
-    6) 
+    6)
+        read -p "Masukkan Domain Baru (contoh: vpn.domain.com): " new_domain
+        if [ -n "$new_domain" ]; then
+            echo "$new_domain" > /etc/vps-domain.txt
+            echo -e "${GREEN}Domain berhasil diubah ke: $new_domain${NC}"
+            echo "Restart layanan Xray untuk menerapkan..."
+            systemctl restart xray
+        else
+            echo -e "${RED}Dibatalkan, domain tidak boleh kosong.${NC}"
+        fi
+        ;;
+    7) 
         echo "Merestart layanan..."
         systemctl restart xray
         systemctl restart vps-bot 2>/dev/null
-        echo -e "\e[32mSelesai merestart Xray dan Bot!\e[0m"
+        echo -e "${GREEN}Selesai merestart Xray dan Bot!${NC}"
         ;;
-    7) 
+    8) 
         if [ -f /vps-scripts/uninstall.sh ]; then
             bash /vps-scripts/uninstall.sh
         else
             echo "Script uninstall tidak ditemukan!"
         fi
         ;;
-    0) exit 0 ;;
-    *) echo -e "\e[31mPilihan tidak valid!\e[0m" ;;
+    0) clear ; exit 0 ;;
+    *) echo -e "${RED}Pilihan tidak valid!${NC}" ;;
 esac
