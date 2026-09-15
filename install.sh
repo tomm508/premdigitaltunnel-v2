@@ -29,6 +29,7 @@ if [ "$1" == "--update-menu" ]; then
     wget -qO list-account.sh "${REPO_URL}/vps-scripts/list-account.sh"
     wget -qO del-account.sh "${REPO_URL}/vps-scripts/del-account.sh"
     wget -qO uninstall.sh "${REPO_URL}/vps-scripts/uninstall.sh"
+    wget -qO menu.sh "${REPO_URL}/vps-scripts/menu.sh"
 
     chmod +x *.sh
     chmod +x *.py
@@ -42,7 +43,8 @@ if [ "$1" == "--update-menu" ]; then
     cp add-trojan.sh /usr/bin/add-trojan
     cp list-account.sh /usr/bin/list-account
     cp del-account.sh /usr/bin/del-account
-    chmod +x /usr/bin/add-* /usr/bin/list-account /usr/bin/del-account
+    cp menu.sh /usr/bin/menu
+    chmod +x /usr/bin/add-* /usr/bin/list-account /usr/bin/del-account /usr/bin/menu
 
     systemctl restart vps-bot 2>/dev/null
 
@@ -102,6 +104,7 @@ wget -qO add-trojan.sh "${REPO_URL}/vps-scripts/add-trojan.sh"
 wget -qO list-account.sh "${REPO_URL}/vps-scripts/list-account.sh"
 wget -qO del-account.sh "${REPO_URL}/vps-scripts/del-account.sh"
 wget -qO uninstall.sh "${REPO_URL}/vps-scripts/uninstall.sh"
+    wget -qO menu.sh "${REPO_URL}/vps-scripts/menu.sh"
 
 chmod +x *.sh
 chmod +x *.py
@@ -120,7 +123,8 @@ cp add-vless.sh /usr/bin/add-vless
 cp add-trojan.sh /usr/bin/add-trojan
 cp list-account.sh /usr/bin/list-account
 cp del-account.sh /usr/bin/del-account
-chmod +x /usr/bin/add-* /usr/bin/list-account /usr/bin/del-account
+    cp menu.sh /usr/bin/menu
+chmod +x /usr/bin/add-* /usr/bin/list-account /usr/bin/del-account /usr/bin/menu
 
 # Install python dependencies for bot
 pip3 install requests pyTelegramBotAPI >/dev/null 2>&1
