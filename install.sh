@@ -23,6 +23,8 @@ if [ "$1" == "--update-menu" ]; then
 
     echo "Mendownload file update terbaru..."
     wget -qO vps-bot.py "${REPO_URL}/vps-scripts/vps-bot.py"
+    wget -qO add-ssh.sh "${REPO_URL}/vps-scripts/add-ssh.sh"
+    wget -qO del-ssh.sh "${REPO_URL}/vps-scripts/del-ssh.sh"
     wget -qO add-vmess.sh "${REPO_URL}/vps-scripts/add-vmess.sh"
     wget -qO add-vless.sh "${REPO_URL}/vps-scripts/add-vless.sh"
     wget -qO add-trojan.sh "${REPO_URL}/vps-scripts/add-trojan.sh"
@@ -38,6 +40,8 @@ if [ "$1" == "--update-menu" ]; then
     cp vps-bot.py /usr/local/bin/vps-bot
     chmod +x /usr/local/bin/vps-bot
 
+    cp add-ssh.sh /usr/bin/add-ssh
+    cp del-ssh.sh /usr/bin/del-ssh
     cp add-vmess.sh /usr/bin/add-vmess
     cp add-vless.sh /usr/bin/add-vless
     cp add-trojan.sh /usr/bin/add-trojan
@@ -98,7 +102,9 @@ bash setup-xray.sh
 
 echo -e "\e[33m[3/3] Menginstall & Menyiapkan Bot Telegram...\e[0m"
 wget -qO vps-bot.py "${REPO_URL}/vps-scripts/vps-bot.py"
-wget -qO add-vmess.sh "${REPO_URL}/vps-scripts/add-vmess.sh"
+wget -qO add-ssh.sh "${REPO_URL}/vps-scripts/add-ssh.sh"
+    wget -qO del-ssh.sh "${REPO_URL}/vps-scripts/del-ssh.sh"
+    wget -qO add-vmess.sh "${REPO_URL}/vps-scripts/add-vmess.sh"
 wget -qO add-vless.sh "${REPO_URL}/vps-scripts/add-vless.sh"
 wget -qO add-trojan.sh "${REPO_URL}/vps-scripts/add-trojan.sh"
 wget -qO list-account.sh "${REPO_URL}/vps-scripts/list-account.sh"
@@ -118,7 +124,9 @@ fi
 # Copy scripts
 cp vps-bot.py /usr/local/bin/vps-bot
 chmod +x /usr/local/bin/vps-bot
-cp add-vmess.sh /usr/bin/add-vmess
+cp add-ssh.sh /usr/bin/add-ssh
+    cp del-ssh.sh /usr/bin/del-ssh
+    cp add-vmess.sh /usr/bin/add-vmess
 cp add-vless.sh /usr/bin/add-vless
 cp add-trojan.sh /usr/bin/add-trojan
 cp list-account.sh /usr/bin/list-account
