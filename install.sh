@@ -231,7 +231,7 @@ if [ ! -f /usr/local/bin/badvpn-udpgw ]; then
     mkdir -p build && cd build || exit
     cmake .. -DBUILD_NOTHING_BY_DEFAULT=1 -DBUILD_UDPGW=1
     make
-    cp udpgw/badvpn-udpgw /usr/local/bin/
+    find /root/badvpn -type f -name "badvpn-udpgw" -exec cp {} /usr/local/bin/ \;
     chmod +x /usr/local/bin/badvpn-udpgw
 fi
 
