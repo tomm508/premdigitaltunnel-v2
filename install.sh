@@ -223,6 +223,7 @@ systemctl restart ws-openssh
 # ==========================================
 echo -e "\e[33m[INFO] Menginstal BadVPN UDPGW (Port 7100, 7200, 7300)...\e[0m"
 apt-get install -y cmake make gcc git
+rm -rf /root/badvpn
 mkdir -p /root/badvpn
 cd /root/badvpn || exit
 if [ ! -f /usr/local/bin/badvpn-udpgw ]; then
@@ -230,7 +231,7 @@ if [ ! -f /usr/local/bin/badvpn-udpgw ]; then
     mkdir -p build && cd build || exit
     cmake .. -DBUILD_NOTHING_BY_DEFAULT=1 -DBUILD_UDPGW=1
     make
-    cp badvpn-udpgw /usr/local/bin/
+    cp udpgw/badvpn-udpgw /usr/local/bin/
     chmod +x /usr/local/bin/badvpn-udpgw
 fi
 

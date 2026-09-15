@@ -58,6 +58,7 @@ apt-get update
 apt-get install -y cmake make gcc git
 
 # BadVPN
+rm -rf /root/badvpn
 mkdir -p /root/badvpn
 cd /root/badvpn || exit
 if [ ! -f /usr/local/bin/badvpn-udpgw ]; then
@@ -65,7 +66,7 @@ if [ ! -f /usr/local/bin/badvpn-udpgw ]; then
     mkdir -p build && cd build || exit
     cmake .. -DBUILD_NOTHING_BY_DEFAULT=1 -DBUILD_UDPGW=1
     make
-    cp badvpn-udpgw /usr/local/bin/
+    cp udpgw/badvpn-udpgw /usr/local/bin/
     chmod +x /usr/local/bin/badvpn-udpgw
 fi
 
