@@ -180,7 +180,49 @@ EOF_REPORTER
             chmod +x /root/premdigital_reporter.sh
             (crontab -l 2>/dev/null | grep -v "premdigital_reporter.sh"; echo "*/1 * * * * /root/premdigital_reporter.sh >/dev/null 2>&1") | crontab -
             
+            echo -e "${CYAN}Mengirim status pertama kali ke Web Panel...${NC}"
+            /root/premdigital_reporter.sh &
+            
             echo -e "${GREEN}[SUCCESS] Instalasi selesai! VPS ini sekarang akan otomatis melapor ke Web Admin setiap 1 menit.${NC}"
+            echo ""
+            read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
+            menu
+        elif [ "$web_opt" == "2" ]; then
+            echo -e "${CYAN}Mengganti Data Server VPS...${NC}"
+            if [ -f /root/node_config.txt ]; then
+                source /root/node_config.txt
+                echo "Data saat ini:"
+                echo "ID Server: $NODE_ID"
+                echo "Nama     : $NODE_NAME"
+                echo "Kota     : $CITY"
+                echo "Negara   : $COUNTRY_CODE"
+                echo ""
+            fi
+            echo "Silakan masukkan detail baru (kosongkan lalu enter jika tidak ingin mengubah baris tersebut):"
+            read -p "Masukkan ID Server [$NODE_ID]: " NEW_NODE_ID
+            read -p "Masukkan Nama Server [$NODE_NAME]: " NEW_NODE_NAME
+            read -p "Masukkan Kota [$CITY]: " NEW_CITY
+            read -p "Masukkan Kode Negara [$COUNTRY_CODE]: " NEW_COUNTRY_CODE
+            
+            NODE_ID="${NEW_NODE_ID:-$NODE_ID}"
+            NODE_NAME="${NEW_NODE_NAME:-$NODE_NAME}"
+            CITY="${NEW_CITY:-$CITY}"
+            COUNTRY_CODE="${NEW_COUNTRY_CODE:-$COUNTRY_CODE}"
+            
+            cat > /root/node_config.txt << EOF_CONFIG
+NODE_ID="$NODE_ID"
+NODE_NAME="$NODE_NAME"
+CITY="$CITY"
+COUNTRY_CODE="$COUNTRY_CODE"
+PROJECT_ID="web-premdigitalvpn"
+API_KEY="AIzaSyDEtjcfHC9cnqxdTpMv8hnRUMDv4c5EYB4"
+EOF_CONFIG
+            
+            echo -e "${GREEN}Konfigurasi berhasil diupdate di /root/node_config.txt!${NC}"
+            if [ -f /root/premdigital_reporter.sh ]; then
+                echo "Mengirim update status seketika ke Web Panel..."
+                /root/premdigital_reporter.sh &
+            fi
             echo ""
             read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
             menu
