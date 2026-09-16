@@ -132,7 +132,7 @@ socket = r:TCP_NODELAY=1
 
 [ws-stunnel]
 accept = 443
-connect = 127.0.0.1:80
+connect = 127.0.0.1:10080
 
 [dropbear-stunnel]
 accept = 8443
@@ -149,6 +149,7 @@ echo -e "\e[33m[INFO] Menginstal Python SSH Websocket (Port 80)...\e[0m"
 apt-get install -y python3
 wget -qO /usr/local/bin/ws-openssh "${REPO_URL}/vps-scripts/ws-openssh.py"
 chmod +x /usr/local/bin/ws-openssh
+sed -i "s/LISTENING_PORT = 80/LISTENING_PORT = 10080/g" /usr/local/bin/ws-openssh
 
 cat > /etc/systemd/system/ws-openssh.service << 'END_WS_SVC'
 [Unit]

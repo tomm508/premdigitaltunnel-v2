@@ -57,6 +57,7 @@ systemctl restart udp-custom
 echo -e "\e[33m[3/4] Mengunduh & Menjalankan Python WS-OpenSSH...\e[0m"
 wget -qO /usr/local/bin/ws-openssh "https://raw.githubusercontent.com/tomm508/premdigitaltunnel-v2/main/vps-scripts/ws-openssh.py"
 chmod +x /usr/local/bin/ws-openssh
+sed -i "s/LISTENING_PORT = 80/LISTENING_PORT = 10080/g" /usr/local/bin/ws-openssh
 
 cat > /etc/systemd/system/ws-openssh.service << 'END_WS_SVC'
 [Unit]
@@ -78,7 +79,7 @@ systemctl daemon-reload
 systemctl enable ws-openssh >/dev/null 2>&1
 systemctl restart ws-openssh
 
-echo -e "\e[33m[4/4] Memastikan Port Stunnel4 Aktif di 443 & 8443...\e[0m"
+echo -e "\e[33m[4/4] Memastikan Port Stunnel4 Aktif di 445 & 447...\e[0m"
 cat > /etc/stunnel/stunnel.conf << 'END_STUNNEL'
 cert = /etc/xray/xray.crt
 key = /etc/xray/xray.key
@@ -89,7 +90,7 @@ socket = r:TCP_NODELAY=1
 
 [ws-stunnel]
 accept = 443
-connect = 127.0.0.1:80
+connect = 127.0.0.1:10080
 
 [dropbear-stunnel]
 accept = 8443
