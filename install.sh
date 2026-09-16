@@ -309,6 +309,12 @@ else
 fi
 sed -i 's@DropbearBanner=""@DropbearBanner="/etc/issue.net"@g' /etc/default/dropbear 2>/dev/null
 sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/issue.net"@g' /etc/default/dropbear 2>/dev/null
+
+# Fix Dropbear shell issue untuk user /bin/false
+if ! grep -q "/bin/false" /etc/shells; then
+    echo "/bin/false" >> /etc/shells
+fi
+
 systemctl restart ssh sshd dropbear 2>/dev/null
 
 echo -e "\e[32m============================================\e[0m"
