@@ -133,14 +133,32 @@ case $menu_num in
             read -p "Masukkan Kota (contoh: Singapore): " CITY
             read -p "Masukkan Kode Negara (contoh: SG): " COUNTRY_CODE
             
+            # Cek jika konfigurasi lama sudah ada
+            CUR_API_KEY=""
+            CUR_PROJECT_ID="premdigital-vpn"
+            if [ -f /root/node_config.txt ]; then
+                source /root/node_config.txt
+                CUR_API_KEY="$API_KEY"
+                CUR_PROJECT_ID="${PROJECT_ID:-premdigital-vpn}"
+            fi
+
+            if [ -z "$CUR_API_KEY" ]; then
+                read -p "Masukkan Firebase API Key: " INPUT_KEY
+                API_KEY="$INPUT_KEY"
+            else
+                read -p "Masukkan Firebase API Key [Sudah Tersimpan / Tekan Enter]: " INPUT_KEY
+                API_KEY="${INPUT_KEY:-$CUR_API_KEY}"
+            fi
+            PROJECT_ID="$CUR_PROJECT_ID"
+            
             # Buat file konfigurasi
             cat > /root/node_config.txt << EOF_CONFIG
 NODE_ID="$NODE_ID"
 NODE_NAME="$NODE_NAME"
 CITY="$CITY"
 COUNTRY_CODE="$COUNTRY_CODE"
-PROJECT_ID="web-premdigitalvpn"
-API_KEY="AIzaSyDEtjcfHC9cnqxdTpMv8hnRUMDv4c5EYB4"
+PROJECT_ID="$PROJECT_ID"
+API_KEY="$API_KEY"
 EOF_CONFIG
 
             echo -e "${GREEN}Konfigurasi berhasil disimpan di /root/node_config.txt${NC}"
@@ -214,8 +232,8 @@ NODE_ID="$NODE_ID"
 NODE_NAME="$NODE_NAME"
 CITY="$CITY"
 COUNTRY_CODE="$COUNTRY_CODE"
-PROJECT_ID="web-premdigitalvpn"
-API_KEY="AIzaSyDEtjcfHC9cnqxdTpMv8hnRUMDv4c5EYB4"
+PROJECT_ID="${PROJECT_ID:-premdigital-vpn}"
+API_KEY="$API_KEY"
 EOF_CONFIG
             
             echo -e "${GREEN}Konfigurasi berhasil diupdate di /root/node_config.txt!${NC}"
