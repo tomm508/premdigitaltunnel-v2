@@ -69,6 +69,7 @@ if [ "$1" == "--update-menu" ]; then
     cp del-account.sh /usr/bin/del-account
     cp menu.sh /usr/bin/menu
     cp cek-service.sh /usr/bin/cek-service
+    cp uninstall.sh /usr/bin/uninstall
     cp limit-ip.sh /usr/bin/limit-ip
     cp limit-ip.sh /usr/local/bin/limit-ip
     cp limit-ip-menu.sh /usr/local/bin/limit-ip-menu
@@ -79,7 +80,7 @@ if [ "$1" == "--update-menu" ]; then
     echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
     bash setup-limit-ip.sh
 
-    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/limit-ip /usr/local/bin/limit-ip*
+    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip*
 
     echo -e "\e[32m============================================\e[0m"
     echo -e "\e[32m       UPDATE MENU SELESAI!                 \e[0m"
@@ -150,11 +151,12 @@ cp list-account.sh /usr/bin/list-account
 cp del-account.sh /usr/bin/del-account
 cp menu.sh /usr/bin/menu
 cp cek-service.sh /usr/bin/cek-service
+cp uninstall.sh /usr/bin/uninstall
 cp limit-ip.sh /usr/bin/limit-ip
 cp limit-ip.sh /usr/local/bin/limit-ip
 cp limit-ip-menu.sh /usr/local/bin/limit-ip-menu
 cp limit-ip.py /usr/local/bin/limit-ip.py
-chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/limit-ip /usr/local/bin/limit-ip*
+chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip*
 
 echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
 bash setup-limit-ip.sh
