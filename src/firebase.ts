@@ -2,9 +2,9 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  projectId: "premdigital-vpn",
-  apiKey: "AIzaSyCBKAcHs0TldS7_Ia78Mig3TR8tJMbt0jw",
-  authDomain: "premdigital-vpn.firebaseapp.com"
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "premdigital-vpn",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: (import.meta.env.VITE_FIREBASE_PROJECT_ID || "premdigital-vpn") + ".firebaseapp.com"
 };
 
 const app = initializeApp(firebaseConfig);

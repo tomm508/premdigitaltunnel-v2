@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import socket, threading, select, sys
+import socket, threading, select, sys, os, json, time
 
 LISTENING_ADDR = '0.0.0.0'
 LISTENING_PORT = 80
@@ -7,6 +7,20 @@ BUFLEN = 8192
 TIMEOUT = 60
 DEFAULT_HOST = '127.0.0.1:22'
 RESPONSE = b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n'
+
+SESSION_LOCK = threading.Lock()
+ACTIVE_WS_SESSIONS = {}
+SESSION_FILE = '/run/premdigital_ws_sessions.json'
+
+def save_ws_sessions():
+    try:
+        os.makedirs(os.path.dirname(SESSION_FILE), exist_ok=True)
+        temp_file = SESSION_FILE + '.tmp'
+        with open(temp_file, 'w') as f:
+            json.dump(ACTIVE_WS_SESSIONS, f)
+        os.replace(temp_file, SESSION_FILE)
+    except Exception:
+        pass
 
 class Server(threading.Thread):
     def __init__(self, host, port):
@@ -60,9 +74,20 @@ class ConnectionHandler(threading.Thread):
         super().__init__()
         self.client = socClient
         self.server = server
+        self.addr = addr
+        self.real_ip = addr[0] if addr else '127.0.0.1'
         self.target = None
+        self.local_port = None
 
     def close(self):
+        if self.local_port:
+            try:
+                with SESSION_LOCK:
+                    if self.local_port in ACTIVE_WS_SESSIONS:
+                        del ACTIVE_WS_SESSIONS[self.local_port]
+                        save_ws_sessions()
+            except Exception:
+                pass
         if self.client:
             try: self.client.shutdown(socket.SHUT_RDWR)
             except: pass
@@ -78,6 +103,9 @@ class ConnectionHandler(threading.Thread):
             client_buffer = self.client.recv(BUFLEN)
             if not client_buffer:
                 return
+            forwarded = self.findHeader(client_buffer, 'X-Forwarded-For') or self.findHeader(client_buffer, 'X-Real-IP')
+            if forwarded:
+                self.real_ip = forwarded.split(',')[0].strip()
             hostPort = self.findHeader(client_buffer, 'X-Real-Host') or DEFAULT_HOST
             self.connect_target(hostPort)
             self.client.sendall(RESPONSE)
@@ -100,6 +128,17 @@ class ConnectionHandler(threading.Thread):
     def connect_target(self, host):
         host, port = (host.split(':') + ['22'])[:2]
         self.target = socket.create_connection((host, int(port)))
+        try:
+            self.local_port = str(self.target.getsockname()[1])
+            with SESSION_LOCK:
+                ACTIVE_WS_SESSIONS[self.local_port] = {
+                    "client_ip": self.real_ip,
+                    "target_port": str(port),
+                    "time": time.time()
+                }
+                save_ws_sessions()
+        except Exception:
+            pass
 
     def do_proxy(self):
         sockets = [self.client, self.target]

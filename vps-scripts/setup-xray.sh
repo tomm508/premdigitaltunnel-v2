@@ -89,6 +89,8 @@ generate_default_config() {
     cat > /etc/xray/config.json << 'EOF'
 {
   "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
     "loglevel": "warning"
   },
   "inbounds": [

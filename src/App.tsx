@@ -163,7 +163,7 @@ NODE_NAME="SG1 DigitalOcean"
 CITY="Singapore"
 COUNTRY_CODE="SG"
 PROJECT_ID="premdigital-vpn"
-API_KEY="AIzaSyCBKAcHs0TldS7_Ia78Mig3TR8tJMbt0jw"
+API_KEY="ISI_DENGAN_API_KEY_ANDA"
 EOF_CONFIG
 
 cat > /root/premdigital_reporter.sh << 'EOF_REPORTER'
@@ -286,9 +286,15 @@ function CreateAccountView({ protocol, selectedNode }: { protocol: string, selec
 
   return (
     <div className="max-w-2xl bg-white rounded-xl shadow-sm border overflow-hidden">
-      <div className="px-6 py-5 border-b bg-slate-50/50">
-        <h2 className="text-lg font-semibold text-slate-800 capitalize">Buat Akun {protocol}</h2>
-        <p className="text-sm text-slate-500 mt-1">Mengirim perintah ke node <strong>{selectedNode}</strong></p>
+      <div className="px-6 py-5 border-b bg-slate-50/50 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-800 capitalize">Buat Akun {protocol}</h2>
+          <p className="text-sm text-slate-500 mt-1">Mengirim perintah ke node <strong>{selectedNode}</strong></p>
+        </div>
+        <div className="flex items-center space-x-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">
+          <Shield className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Max 2 IP (AutoKill)</span>
+        </div>
       </div>
       
       <div className="p-6 space-y-5">
