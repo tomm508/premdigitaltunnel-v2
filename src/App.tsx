@@ -293,7 +293,7 @@ function CreateAccountView({ protocol, selectedNode }: { protocol: string, selec
         </div>
         <div className="flex items-center space-x-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1 rounded-full text-xs font-medium">
           <Shield className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Max 2 IP (AutoKill)</span>
+          <span>Limit Multi-Login (AutoKill)</span>
         </div>
       </div>
       

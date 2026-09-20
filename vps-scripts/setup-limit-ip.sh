@@ -11,7 +11,7 @@ CYAN='\e[1;36m'
 NC='\e[0m'
 
 echo -e "${BLUE}====================================================${NC}"
-echo -e "${GREEN}      INSTALLER LIMIT MULTI-LOGIN (MAX 2 IP)        ${NC}"
+echo -e "${GREEN}      INSTALLER LIMIT MULTI-LOGIN (AUTOKILL)        ${NC}"
 echo -e "${BLUE}====================================================${NC}"
 
 mkdir -p /etc/premdigital
@@ -90,7 +90,7 @@ EOF
 systemctl daemon-reload
 systemctl enable --now limit-ip.service 2>/dev/null || true
 
-echo -e "${GREEN}[SUKSES] Sistem Limit Multi-Login (Max 2 IP) berhasil dipasang!${NC}"
+echo -e "${GREEN}[SUKSES] Sistem Limit Multi-Login berhasil dipasang!${NC}"
 echo -e "Perintah cepat yang tersedia di terminal:"
 echo -e " - ${YELLOW}limit-ip${NC}        : Membuka Menu Pengaturan Limit IP"
 echo -e " - ${YELLOW}limit-ip --check${NC}: Cek status user & IP aktif seketika"
