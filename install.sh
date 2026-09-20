@@ -100,7 +100,13 @@ apt-get update -y
 apt-get install -y wget curl
 
 echo -n "Masukkan Domain VPS Anda (Contoh: vpn.domain.com) [ENTER utk pakai IP]: "
-read domain_input < /dev/tty
+if [ -e /dev/tty ] && [ -r /dev/tty ]; then
+    read domain_input < /dev/tty 2>/dev/null || domain_input=""
+elif [ -t 0 ]; then
+    read domain_input 2>/dev/null || domain_input=""
+else
+    domain_input=""
+fi
 
 if [ -n "$domain_input" ]; then
     echo "$domain_input" > /etc/vps-domain.txt
