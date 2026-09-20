@@ -5,10 +5,29 @@
 
 REPO_URL="https://raw.githubusercontent.com/tomm508/premdigitaltunnel-v2/main"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOCAL_SCRIPTS="${SCRIPT_DIR}/vps-scripts"
+
+WGET_AUTH=""
+if [ -n "$GITHUB_TOKEN" ]; then
+    WGET_AUTH="--header=Authorization: token $GITHUB_TOKEN"
+fi
+
 if [ "${EUID}" -ne 0 ]; then
     echo -e "\e[31mMohon jalankan script ini sebagai root (sudo su)\e[0m"
     exit 1
 fi
+
+# Helper download / copy function
+fetch_script() {
+    local name="$1"
+    local dest="$2"
+    if [ -f "${LOCAL_SCRIPTS}/${name}" ]; then
+        cp -f "${LOCAL_SCRIPTS}/${name}" "$dest"
+    else
+        wget $WGET_AUTH -qO "$dest" "${REPO_URL}/vps-scripts/${name}"
+    fi
+}
 
 # ==========================================
 # FITUR UPDATE SCRIPT
@@ -22,18 +41,23 @@ if [ "$1" == "--update-menu" ]; then
     cd /vps-scripts || exit
 
     echo "Mendownload file update terbaru..."
-    wget -qO add-ssh.sh "${REPO_URL}/vps-scripts/add-ssh.sh"
-    wget -qO del-ssh.sh "${REPO_URL}/vps-scripts/del-ssh.sh"
-    wget -qO add-vmess.sh "${REPO_URL}/vps-scripts/add-vmess.sh"
-    wget -qO add-vless.sh "${REPO_URL}/vps-scripts/add-vless.sh"
-    wget -qO add-trojan.sh "${REPO_URL}/vps-scripts/add-trojan.sh"
-    wget -qO list-account.sh "${REPO_URL}/vps-scripts/list-account.sh"
-    wget -qO del-account.sh "${REPO_URL}/vps-scripts/del-account.sh"
-    wget -qO menu.sh "${REPO_URL}/vps-scripts/menu.sh"
-    wget -qO uninstall.sh "${REPO_URL}/vps-scripts/uninstall.sh"
-    wget -qO cek-service.sh "${REPO_URL}/vps-scripts/cek-service.sh"
+    fetch_script "add-ssh.sh" "add-ssh.sh"
+    fetch_script "del-ssh.sh" "del-ssh.sh"
+    fetch_script "add-vmess.sh" "add-vmess.sh"
+    fetch_script "add-vless.sh" "add-vless.sh"
+    fetch_script "add-trojan.sh" "add-trojan.sh"
+    fetch_script "list-account.sh" "list-account.sh"
+    fetch_script "del-account.sh" "del-account.sh"
+    fetch_script "menu.sh" "menu.sh"
+    fetch_script "uninstall.sh" "uninstall.sh"
+    fetch_script "cek-service.sh" "cek-service.sh"
+    fetch_script "limit-ip.py" "limit-ip.py"
+    fetch_script "limit-ip-menu.sh" "limit-ip-menu.sh"
+    fetch_script "limit-ip.sh" "limit-ip.sh"
+    fetch_script "setup-limit-ip.sh" "setup-limit-ip.sh"
+    fetch_script "ws-openssh.py" "ws-openssh.py"
 
-    chmod +x *.sh
+    chmod +x *.sh *.py
 
     echo "Menyalin script ke sistem utama..."
     cp add-ssh.sh /usr/bin/add-ssh
@@ -44,8 +68,18 @@ if [ "$1" == "--update-menu" ]; then
     cp list-account.sh /usr/bin/list-account
     cp del-account.sh /usr/bin/del-account
     cp menu.sh /usr/bin/menu
-cp cek-service.sh /usr/bin/cek-service
-    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu
+    cp cek-service.sh /usr/bin/cek-service
+    cp limit-ip.sh /usr/bin/limit-ip
+    cp limit-ip.sh /usr/local/bin/limit-ip
+    cp limit-ip-menu.sh /usr/local/bin/limit-ip-menu
+    cp limit-ip.py /usr/local/bin/limit-ip.py
+    cp ws-openssh.py /usr/local/bin/ws-openssh
+    systemctl restart ws-openssh 2>/dev/null || true
+
+    echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
+    bash setup-limit-ip.sh
+
+    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/limit-ip /usr/local/bin/limit-ip*
 
     echo -e "\e[32m============================================\e[0m"
     echo -e "\e[32m       UPDATE MENU SELESAI!                 \e[0m"
@@ -81,25 +115,30 @@ mkdir -p /vps-scripts
 cd /vps-scripts || exit
 
 echo -e "\e[33m[1/2] Mengunduh script setup Xray...\e[0m"
-wget -qO setup-xray.sh "${REPO_URL}/vps-scripts/setup-xray.sh"
+fetch_script "setup-xray.sh" "setup-xray.sh"
 chmod +x setup-xray.sh
 
 echo -e "\e[33m[2/2] Menjalankan setup Xray...\e[0m"
 bash setup-xray.sh
 
-echo -e "\e[33m[INFO] Mengunduh script menu CLI...\e[0m"
-wget -qO add-ssh.sh "${REPO_URL}/vps-scripts/add-ssh.sh"
-wget -qO del-ssh.sh "${REPO_URL}/vps-scripts/del-ssh.sh"
-wget -qO add-vmess.sh "${REPO_URL}/vps-scripts/add-vmess.sh"
-wget -qO add-vless.sh "${REPO_URL}/vps-scripts/add-vless.sh"
-wget -qO add-trojan.sh "${REPO_URL}/vps-scripts/add-trojan.sh"
-wget -qO list-account.sh "${REPO_URL}/vps-scripts/list-account.sh"
-wget -qO del-account.sh "${REPO_URL}/vps-scripts/del-account.sh"
-wget -qO menu.sh "${REPO_URL}/vps-scripts/menu.sh"
-wget -qO uninstall.sh "${REPO_URL}/vps-scripts/uninstall.sh"
-    wget -qO cek-service.sh "${REPO_URL}/vps-scripts/cek-service.sh"
+echo -e "\e[33m[INFO] Mengunduh script menu CLI & Limit IP...\e[0m"
+fetch_script "add-ssh.sh" "add-ssh.sh"
+fetch_script "del-ssh.sh" "del-ssh.sh"
+fetch_script "add-vmess.sh" "add-vmess.sh"
+fetch_script "add-vless.sh" "add-vless.sh"
+fetch_script "add-trojan.sh" "add-trojan.sh"
+fetch_script "list-account.sh" "list-account.sh"
+fetch_script "del-account.sh" "del-account.sh"
+fetch_script "menu.sh" "menu.sh"
+fetch_script "uninstall.sh" "uninstall.sh"
+fetch_script "cek-service.sh" "cek-service.sh"
+fetch_script "limit-ip.py" "limit-ip.py"
+fetch_script "limit-ip-menu.sh" "limit-ip-menu.sh"
+fetch_script "limit-ip.sh" "limit-ip.sh"
+fetch_script "setup-limit-ip.sh" "setup-limit-ip.sh"
+fetch_script "ws-openssh.py" "ws-openssh.py"
 
-chmod +x *.sh
+chmod +x *.sh *.py
 
 # Copy scripts
 cp add-ssh.sh /usr/bin/add-ssh
@@ -111,7 +150,14 @@ cp list-account.sh /usr/bin/list-account
 cp del-account.sh /usr/bin/del-account
 cp menu.sh /usr/bin/menu
 cp cek-service.sh /usr/bin/cek-service
-chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu
+cp limit-ip.sh /usr/bin/limit-ip
+cp limit-ip.sh /usr/local/bin/limit-ip
+cp limit-ip-menu.sh /usr/local/bin/limit-ip-menu
+cp limit-ip.py /usr/local/bin/limit-ip.py
+chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/limit-ip /usr/local/bin/limit-ip*
+
+echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
+bash setup-limit-ip.sh
 
 
 
@@ -147,7 +193,7 @@ systemctl restart stunnel4
 # ==========================================
 echo -e "\e[33m[INFO] Menginstal Python SSH Websocket (Port 80)...\e[0m"
 apt-get install -y python3
-wget -qO /usr/local/bin/ws-openssh "${REPO_URL}/vps-scripts/ws-openssh.py"
+fetch_script "ws-openssh.py" "/usr/local/bin/ws-openssh"
 chmod +x /usr/local/bin/ws-openssh
 sed -i "s/LISTENING_PORT = 80/LISTENING_PORT = 10080/g" /usr/local/bin/ws-openssh
 
