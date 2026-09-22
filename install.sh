@@ -75,6 +75,7 @@ if [ "$1" == "--update-menu" ]; then
     fetch_script "load-balancer-menu.sh" "load-balancer-menu.sh"
     fetch_script "setup-haproxy-lb.sh" "setup-haproxy-lb.sh"
     fetch_script "migrate.sh" "migrate.sh"
+    fetch_script "auto-kill-expired.sh" "auto-kill-expired.sh"
     fetch_script "ws-openssh.py" "ws-openssh.py"
 
     chmod +x *.sh *.py
@@ -96,13 +97,23 @@ if [ "$1" == "--update-menu" ]; then
     cp limit-ip.py /usr/local/bin/limit-ip.py
     cp load-balancer-menu.sh /usr/local/bin/load-balancer-menu
     cp migrate.sh /usr/local/bin/migrate
+    cp auto-kill-expired.sh /usr/local/bin/auto-kill-expired
+    cp auto-kill-expired.sh /usr/bin/auto-kill-expired
+    ln -sf /usr/local/bin/auto-kill-expired /usr/bin/xp
     cp ws-openssh.py /usr/local/bin/ws-openssh
     systemctl restart ws-openssh 2>/dev/null || true
 
     echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
     bash setup-limit-ip.sh
 
-    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip* /usr/local/bin/load-balancer-menu /usr/local/bin/migrate
+    # Setup Cron Auto Kill Expired Accounts (Tiap Jam 00:00 & tiap jam)
+    cat > /etc/cron.d/auto-kill-expired << 'CRON_EOF'
+0 0 * * * root /usr/local/bin/auto-kill-expired --cron >> /var/log/premdigital-expired.log 2>&1
+CRON_EOF
+    chmod 644 /etc/cron.d/auto-kill-expired
+    systemctl restart cron 2>/dev/null || systemctl restart crond 2>/dev/null || true
+
+    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip* /usr/local/bin/load-balancer-menu /usr/local/bin/migrate /usr/local/bin/auto-kill-expired /usr/bin/xp
 
     echo -e "\e[32m============================================\e[0m"
     echo -e "\e[32m       UPDATE MENU SELESAI!                 \e[0m"
