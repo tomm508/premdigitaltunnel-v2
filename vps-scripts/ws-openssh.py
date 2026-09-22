@@ -3,7 +3,7 @@ import socket, threading, select, sys, os, json, time
 
 LISTENING_ADDR = '0.0.0.0'
 LISTENING_PORT = 80
-BUFLEN = 8192
+BUFLEN = 65536
 TIMEOUT = 86400
 DEFAULT_HOST = '127.0.0.1:22'
 RESPONSE = b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n'
@@ -12,6 +12,8 @@ def set_keepalive(sock):
     try:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 262144)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 262144)
         if hasattr(socket, 'TCP_KEEPIDLE'):
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 20)
         if hasattr(socket, 'TCP_KEEPINTVL'):

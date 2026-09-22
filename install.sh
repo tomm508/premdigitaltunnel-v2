@@ -76,6 +76,7 @@ if [ "$1" == "--update-menu" ]; then
     fetch_script "setup-haproxy-lb.sh" "setup-haproxy-lb.sh"
     fetch_script "migrate.sh" "migrate.sh"
     fetch_script "auto-kill-expired.sh" "auto-kill-expired.sh"
+    fetch_script "optimize-speed.sh" "optimize-speed.sh"
     fetch_script "premdigital_creator.py" "premdigital_creator.py"
     fetch_script "ws-openssh.py" "ws-openssh.py"
 
@@ -185,6 +186,7 @@ fetch_script "load-balancer-menu.sh" "load-balancer-menu.sh"
 fetch_script "setup-haproxy-lb.sh" "setup-haproxy-lb.sh"
 fetch_script "migrate.sh" "migrate.sh"
 fetch_script "auto-kill-expired.sh" "auto-kill-expired.sh"
+fetch_script "optimize-speed.sh" "optimize-speed.sh"
 fetch_script "premdigital_creator.py" "premdigital_creator.py"
 fetch_script "ws-openssh.py" "ws-openssh.py"
 
