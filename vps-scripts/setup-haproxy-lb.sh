@@ -28,9 +28,19 @@ if [ -f /etc/haproxy/haproxy.cfg ]; then
     cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
 fi
 
+# Deteksi port yang aman agar tidak bentrok dengan service aktif (ws-openssh / xray)
+PORT_HTTP=80
+PORT_HTTPS=443
+if ss -tlnp 2>/dev/null | grep -E -q ":80\s"; then
+    PORT_HTTP=8880
+fi
+if ss -tlnp 2>/dev/null | grep -E -q ":443\s"; then
+    PORT_HTTPS=8443
+fi
+
 # 3. Buat Konfigurasi HAProxy Multi-Worker Load Balancing
 echo -e "${YELLOW}[2/4] Mengkonfigurasi Load Balancer (leastconn & health-check)...${NC}"
-cat << 'EOF' > /etc/haproxy/haproxy.cfg
+cat << EOF > /etc/haproxy/haproxy.cfg
 global
     log /dev/log local0
     log /dev/log local1 notice
@@ -52,42 +62,42 @@ defaults
     timeout client  50000ms
     timeout server  50000ms
 
-# Statistik Web Dashboard HAProxy (Port 8443)
+# Statistik Web Dashboard HAProxy (Port 9000)
 frontend stats_fe
     mode http
-    bind *:8443
+    bind *:9000
     stats enable
     stats uri /
     stats refresh 5s
     stats show-legends
     stats auth admin:premdigital
 
-# Frontend Port 80 (HTTP / WS Non-TLS)
+# Frontend HTTP / WS
 frontend http_in
     mode tcp
-    bind *:80
+    bind *:$PORT_HTTP
     default_backend ws_backend_pool
 
-# Frontend Port 443 (HTTPS / TLS Pass-through ke Xray / Stunnel)
+# Frontend HTTPS / TLS
 frontend https_in
     mode tcp
-    bind *:443
+    bind *:$PORT_HTTPS
     default_backend tls_backend_pool
 
 # Backend WS Pools (Least Connection Balancing)
 backend ws_backend_pool
     mode tcp
     balance leastconn
+    server ws_openssh 127.0.0.1:80 check backup
     server ws_core1 127.0.0.1:10015 check
-    server ws_core2 127.0.0.1:10016 check backup
-    server ws_openssh 127.0.0.1:2082 check backup
+    server ws_core2 127.0.0.1:2082 check backup
 
 # Backend TLS Pools (Xray VMess/VLess/Trojan)
 backend tls_backend_pool
     mode tcp
     balance leastconn
-    server xray_tls 127.0.0.1:10443 check
-    server stunnel_tls 127.0.0.1:4433 check backup
+    server xray_tls 127.0.0.1:443 check
+    server stunnel_tls 127.0.0.1:8443 check backup
 EOF
 
 # 4. Aktifkan & Restart HAProxy
@@ -96,6 +106,6 @@ systemctl enable haproxy >/dev/null 2>&1
 systemctl restart haproxy >/dev/null 2>&1
 
 echo -e "${GREEN}[4/4] SUKSES! Load Balancer HAProxy berhasil dipasang.${NC}"
-echo -e "Web Statistik Load Balancer : ${CYAN}http://$(curl -s -m 3 ipv4.icanhazip.com):8443${NC}"
+echo -e "Web Statistik Load Balancer : ${CYAN}http://$(curl -s -m 3 ipv4.icanhazip.com):9000${NC}"
 echo -e "User Statistik              : ${YELLOW}admin${NC} | Password: ${YELLOW}premdigital${NC}"
 echo -e "${BLUE}====================================================${NC}"

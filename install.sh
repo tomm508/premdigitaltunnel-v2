@@ -24,9 +24,26 @@ fetch_script() {
     local dest="$2"
     if [ -f "${LOCAL_SCRIPTS}/${name}" ]; then
         cp -f "${LOCAL_SCRIPTS}/${name}" "$dest"
-    else
-        wget $WGET_AUTH -qO "$dest" "${REPO_URL}/vps-scripts/${name}"
+        chmod +x "$dest" 2>/dev/null || true
+        return 0
     fi
+
+    local tmp_file="/tmp/${name}.tmp"
+    rm -f "$tmp_file"
+
+    if [ -n "$GITHUB_TOKEN" ]; then
+        curl -sSL -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" "${REPO_URL}/vps-scripts/${name}" -o "$tmp_file" 2>/dev/null
+    else
+        curl -sSL "${REPO_URL}/vps-scripts/${name}" -o "$tmp_file" 2>/dev/null || wget -qO "$tmp_file" "${REPO_URL}/vps-scripts/${name}" 2>/dev/null
+    fi
+
+    if [ -s "$tmp_file" ] && ! grep -q "404: Not Found" "$tmp_file"; then
+        cp -f "$tmp_file" "$dest"
+        chmod +x "$dest" 2>/dev/null || true
+    else
+        echo -e "\e[31m[PERINGATAN] Gagal mengunduh $name dari repo!\e[0m"
+    fi
+    rm -f "$tmp_file"
 }
 
 # ==========================================
@@ -55,6 +72,9 @@ if [ "$1" == "--update-menu" ]; then
     fetch_script "limit-ip-menu.sh" "limit-ip-menu.sh"
     fetch_script "limit-ip.sh" "limit-ip.sh"
     fetch_script "setup-limit-ip.sh" "setup-limit-ip.sh"
+    fetch_script "load-balancer-menu.sh" "load-balancer-menu.sh"
+    fetch_script "setup-haproxy-lb.sh" "setup-haproxy-lb.sh"
+    fetch_script "migrate.sh" "migrate.sh"
     fetch_script "ws-openssh.py" "ws-openssh.py"
 
     chmod +x *.sh *.py
@@ -74,13 +94,15 @@ if [ "$1" == "--update-menu" ]; then
     cp limit-ip.sh /usr/local/bin/limit-ip
     cp limit-ip-menu.sh /usr/local/bin/limit-ip-menu
     cp limit-ip.py /usr/local/bin/limit-ip.py
+    cp load-balancer-menu.sh /usr/local/bin/load-balancer-menu
+    cp migrate.sh /usr/local/bin/migrate
     cp ws-openssh.py /usr/local/bin/ws-openssh
     systemctl restart ws-openssh 2>/dev/null || true
 
     echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
     bash setup-limit-ip.sh
 
-    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip*
+    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip* /usr/local/bin/load-balancer-menu /usr/local/bin/migrate
 
     echo -e "\e[32m============================================\e[0m"
     echo -e "\e[32m       UPDATE MENU SELESAI!                 \e[0m"
