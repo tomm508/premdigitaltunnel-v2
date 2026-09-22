@@ -57,13 +57,18 @@ global
     daemon
     stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
     stats timeout 30s
-    maxconn 20000
+    maxconn 50000
+    tune.bufsize 65536
+    tune.maxrewrite 1024
 
 defaults
     log     global
     mode    tcp
     option  tcplog
     option  dontlognull
+    option  tcp-smart-accept
+    option  tcp-smart-connect
+    option  splice-auto
     retries 3
     timeout connect 5000ms
     timeout client  3600000ms
@@ -80,32 +85,31 @@ frontend stats_fe
     stats show-legends
     stats auth admin:premdigital
 
-# Frontend HTTP / WS
+# Frontend HTTP / WS Port (Port 80, 8880, 8080)
 frontend http_in
     mode tcp
-    bind *:$PORT_HTTP
+    bind *:80
+    bind *:8880
+    bind *:8080
     default_backend ws_backend_pool
 
-# Frontend HTTPS / TLS
+# Frontend HTTPS / TLS Port (Port 443 & 8443)
 frontend https_in
     mode tcp
-    bind *:$PORT_HTTPS
+    bind *:443
+    bind *:8443
     default_backend tls_backend_pool
 
-# Backend WS Pools (Least Connection Balancing)
+# Backend WS Pools (Langsung ke Python WebSocket SSH Port 10080)
 backend ws_backend_pool
     mode tcp
-    balance leastconn
-    server ws_openssh 127.0.0.1:80 check backup
-    server ws_core1 127.0.0.1:10015 check
-    server ws_core2 127.0.0.1:2082 check backup
+    server ws_openssh 127.0.0.1:10080 check
 
-# Backend TLS Pools (Xray VMess/VLess/Trojan)
+# Backend TLS Pools (Stunnel SSH & Xray TLS)
 backend tls_backend_pool
     mode tcp
-    balance leastconn
-    server xray_tls 127.0.0.1:$XRAY_LOCAL_PORT check
-    server stunnel_tls 127.0.0.1:8443 check backup
+    server stunnel_ssh 127.0.0.1:8443 check
+    server xray_tls 127.0.0.1:$XRAY_LOCAL_PORT check backup
 EOF
 
 # 4. Aktifkan & Restart HAProxy
