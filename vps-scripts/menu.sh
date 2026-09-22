@@ -81,28 +81,23 @@ case $menu_num in
         bash /vps-scripts/list-account.sh
         ;;
     6) 
-        clear
-        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${GREEN}        DELETE ACCOUNT { SSH/WS & XRAY }          ${NC}"
-        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e " ${YELLOW}[1]${NC} Delete Akun SSH / WS"
-        echo -e " ${YELLOW}[2]${NC} Delete Akun Xray (VMess / VLess / Trojan)"
-        echo -e " ${CYAN}[3]${NC} Auto kill & delete { SSH/WS & Xray }"
-        echo -e " ${YELLOW}[0]${NC} Kembali ke Menu Utama"
-        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        read -p " Pilih Pilihan [0-3]: " del_opt
-        case $del_opt in
-            1) bash /vps-scripts/del-ssh.sh ;;
-            2) bash /vps-scripts/del-account.sh ;;
-            3) 
-                MENU_XP="/usr/local/bin/auto-kill-expired"
-                [ ! -f "$MENU_XP" ] && MENU_XP="/vps-scripts/auto-kill-expired.sh"
-                [ ! -f "$MENU_XP" ] && MENU_XP="$(pwd)/vps-scripts/auto-kill-expired.sh"
-                bash "$MENU_XP"
-                ;;
-            0) menu ;;
-            *) menu ;;
-        esac
+        echo -e "\n${YELLOW}Pilih Tipe Akun yang akan dihapus:${NC}"
+        echo "1. Akun SSH/WS"
+        echo "2. Akun Xray (Vmess/Vless/Trojan)"
+        echo "3. Auto kill & delete { SSH/WS & Xray }"
+        read -p "Pilihan [1/2/3]: " del_opt
+        if [ "$del_opt" == "1" ]; then
+            bash /vps-scripts/del-ssh.sh
+        elif [ "$del_opt" == "2" ]; then
+            bash /vps-scripts/del-account.sh
+        elif [ "$del_opt" == "3" ]; then
+            MENU_XP="/usr/local/bin/auto-kill-expired"
+            [ ! -f "$MENU_XP" ] && MENU_XP="/vps-scripts/auto-kill-expired.sh"
+            [ ! -f "$MENU_XP" ] && MENU_XP="$(pwd)/vps-scripts/auto-kill-expired.sh"
+            bash "$MENU_XP"
+        else
+            menu
+        fi
         ;;
     7)
         echo -e "\n${CYAN}====================================================${NC}"

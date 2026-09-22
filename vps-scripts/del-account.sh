@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================
-# Script Delete Account (SSH/VMESS/VLESS/TROJAN)
+# Script Delete Account (Xray VMESS/VLESS/TROJAN)
 # ==========================================
 
 CONFIG_XRAY="/etc/xray/config.json"
@@ -8,27 +8,42 @@ XRAY_DB="/etc/premdigital/xray-users.db"
 
 clear
 echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-echo -e "\e[1;31m             HAPUS AKUN VPN               \e[0m"
+echo -e "\e[1;31m         HAPUS AKUN XRAY (VPN)            \e[0m"
 echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
+echo -e "\e[1;33mDaftar Akun Xray di Server:\e[0m"
 
+total_xray=0
+if [ -f "$XRAY_DB" ] && [ -s "$XRAY_DB" ]; then
+    while IFS=" | " read -r u uuid_pass exp proto; do
+        if [ -n "$u" ]; then
+            echo -e "  - Username: \e[1;32m$u\e[0m | Proto: \e[1;36m$proto\e[0m | Expired: \e[1;31m$exp\e[0m"
+            total_xray=$((total_xray + 1))
+        fi
+    done < "$XRAY_DB"
+fi
+
+if [ $total_xray -eq 0 ]; then
+    echo -e "  \e[1;31m(Tidak ada akun Xray di database)\e[0m"
+fi
+
+echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 read -rp "Masukkan Username yang ingin dihapus : " user
+
 if [[ -z "$user" ]]; then
     echo -e "\e[1;31mUsername tidak boleh kosong!\e[0m"
+    sleep 2
+    menu
     exit 1
 fi
 
-found_ssh=0
 found_xray=0
 
-# Cek & Hapus dari SSH (Sistem Linux)
-if id "$user" &>/dev/null; then
-    userdel -f "$user" 2>/dev/null
-    rm -f "/etc/premdigital/multilogin/$user" 2>/dev/null
-    rm -f "/etc/premdigital/user_quota/$user" 2>/dev/null
-    found_ssh=1
+# Backup config xray sebelum diedit
+if [ -f "$CONFIG_XRAY" ]; then
+    cp -f "$CONFIG_XRAY" "${CONFIG_XRAY}.bak" 2>/dev/null
 fi
 
-# Cek & Hapus dari Xray
+# Cek & Hapus dari Xray config.json
 if grep -q "\"email\": \"${user}\"" "$CONFIG_XRAY" 2>/dev/null; then
     python3 - <<PY_EOF
 import json
@@ -53,14 +68,12 @@ PY_EOF
     found_xray=1
 fi
 
-if [[ $found_ssh -eq 0 && $found_xray -eq 0 ]]; then
-    echo -e "\e[1;31mUsername '${user}' tidak ditemukan di server!\e[0m"
+if [[ $found_xray -eq 0 ]]; then
+    echo -e "\e[1;31mUsername '${user}' tidak ditemukan di Xray!\e[0m"
 else
     echo -e "\e[1;32m✅ Akun '${user}' berhasil dihapus dari server!\e[0m"
 fi
--e 
 
-echo -e "[33m====================================================[0m"
+echo -e "\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
 menu
-
