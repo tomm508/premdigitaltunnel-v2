@@ -237,12 +237,10 @@ client = no
 socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
+socket = l:SO_RCVBUF=262144
+socket = r:SO_SNDBUF=262144
 
-[ws-stunnel]
-accept = 443
-connect = 127.0.0.1:10080
-
-[dropbear-stunnel]
+[dropbear-stunnel-8443]
 accept = 8443
 connect = 127.0.0.1:109
 END_STUNNEL
@@ -253,15 +251,14 @@ systemctl restart stunnel4
 # ==========================================
 # INSTALL PYSW (PYTHON SSH WEBSOCKET)
 # ==========================================
-echo -e "\e[33m[INFO] Menginstal Python SSH Websocket (Port 80)...\e[0m"
+echo -e "\e[33m[INFO] Menginstal Python SSH Websocket (Port 80, 8080, 8880)...\e[0m"
 apt-get install -y python3
 fetch_script "ws-openssh.py" "/usr/local/bin/ws-openssh"
 chmod +x /usr/local/bin/ws-openssh
-sed -i "s/LISTENING_PORT = 80/LISTENING_PORT = 10080/g" /usr/local/bin/ws-openssh
 
 cat > /etc/systemd/system/ws-openssh.service << 'END_WS_SVC'
 [Unit]
-Description=Python SSH Websocket Port 80
+Description=Python SSH Websocket Multi-Port 80, 8080, 8880
 After=network.target
 
 [Service]

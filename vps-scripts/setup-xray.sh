@@ -225,7 +225,7 @@ generate_default_config() {
     },
     {
       "port": 443,
-      "listen": "127.0.0.1",
+      "listen": "0.0.0.0",
       "protocol": "vless",
       "settings": {
         "clients": [],
@@ -240,7 +240,7 @@ generate_default_config() {
           { "serviceName": "vmess", "dest": 10004 },
           { "serviceName": "vless", "dest": 10005 },
           { "serviceName": "trojan", "dest": 10006 },
-          { "dest": 109 }
+          { "dest": 80 }
         ]
       },
       "streamSettings": {

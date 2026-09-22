@@ -2,11 +2,12 @@
 import socket, threading, select, sys, os, json, time
 
 LISTENING_ADDR = '0.0.0.0'
-LISTENING_PORT = 80
+LISTENING_PORTS = [80, 8080, 8880]
 BUFLEN = 65536
 TIMEOUT = 86400
-DEFAULT_HOST = '127.0.0.1:22'
+DEFAULT_HOST = '127.0.0.1:109'
 RESPONSE = b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n'
+RESPONSE_200 = b'HTTP/1.1 200 Connection Established\r\nConnection: keep-alive\r\n\r\n'
 
 def set_keepalive(sock):
     try:
@@ -121,11 +122,47 @@ class ConnectionHandler(threading.Thread):
             forwarded = self.findHeader(client_buffer, 'X-Forwarded-For') or self.findHeader(client_buffer, 'X-Real-IP')
             if forwarded:
                 self.real_ip = forwarded.split(',')[0].strip()
+            if client_buffer.startswith(b'SSH-'):
+                # Raw SSH stream (e.g. from Xray direct fallback or stunnel)
+                self.connect_target('127.0.0.1:109')
+                set_keepalive(self.target)
+                self.target.sendall(client_buffer)
+                self.do_proxy()
+                return
+
+            head_str = client_buffer.decode('utf-8', 'ignore')
+            first_line = head_str.split('\r\n')[0] if '\r\n' in head_str else ''
+            parts = first_line.split(' ')
+            path = parts[1] if len(parts) > 1 else '/'
+
+            # Unified Xray Non-TLS WebSocket routing on Port 80/8080/8880
+            if '/vmess' in path:
+                self.target = socket.create_connection(('127.0.0.1', 10001), timeout=5)
+                set_keepalive(self.target)
+                self.target.sendall(client_buffer)
+                self.do_proxy()
+                return
+            elif '/vless' in path:
+                self.target = socket.create_connection(('127.0.0.1', 10002), timeout=5)
+                set_keepalive(self.target)
+                self.target.sendall(client_buffer)
+                self.do_proxy()
+                return
+            elif '/trojan' in path:
+                self.target = socket.create_connection(('127.0.0.1', 10003), timeout=5)
+                set_keepalive(self.target)
+                self.target.sendall(client_buffer)
+                self.do_proxy()
+                return
+
+            # Default: SSH WebSocket (Enhanced / Standard WS / CONNECT)
             hostPort = self.findHeader(client_buffer, 'X-Real-Host') or DEFAULT_HOST
-            set_keepalive(self.client)
             self.connect_target(hostPort)
             set_keepalive(self.target)
-            self.client.sendall(RESPONSE)
+            if client_buffer.startswith(b'CONNECT '):
+                self.client.sendall(RESPONSE_200)
+            else:
+                self.client.sendall(RESPONSE)
             self.do_proxy()
         except Exception:
             pass
@@ -143,14 +180,20 @@ class ConnectionHandler(threading.Thread):
         except: return ''
 
     def connect_target(self, host):
-        host, port = (host.split(':') + ['22'])[:2]
-        self.target = socket.create_connection((host, int(port)))
+        parts = host.split(':')
+        h = parts[0]
+        p = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 109
+        # Coba konek ke Dropbear (109) dulu, fallback ke OpenSSH (22)
+        try:
+            self.target = socket.create_connection((h, p), timeout=5)
+        except Exception:
+            self.target = socket.create_connection(('127.0.0.1', 109 if p != 109 else 22), timeout=5)
         try:
             self.local_port = str(self.target.getsockname()[1])
             with SESSION_LOCK:
                 ACTIVE_WS_SESSIONS[self.local_port] = {
                     "client_ip": self.real_ip,
-                    "target_port": str(port),
+                    "target_port": str(p),
                     "time": time.time()
                 }
                 save_ws_sessions()
@@ -176,12 +219,20 @@ class ConnectionHandler(threading.Thread):
                     return
 
 def main():
-    server = Server(LISTENING_ADDR, LISTENING_PORT)
-    server.start()
+    servers = []
+    for port in LISTENING_PORTS:
+        try:
+            s = Server(LISTENING_ADDR, port)
+            s.start()
+            servers.append(s)
+        except Exception as e:
+            pass
     try:
-        server.join()
+        while True:
+            time.sleep(1)
     except KeyboardInterrupt:
-        server.close()
+        for s in servers:
+            s.close()
 
 if __name__ == '__main__':
     main()

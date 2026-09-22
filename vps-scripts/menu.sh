@@ -67,10 +67,11 @@ echo -e " ${YELLOW}[8]${NC} Web Connection Setting"
 echo -e " ${YELLOW}[9]${NC} Service Status & Restart"
 echo -e " ${YELLOW}[10]${NC} Limit Multi-Login"
 echo -e " ${YELLOW}[11]${NC} Load Balancer & Server Migration"
-echo -e " ${YELLOW}[12]${NC} ❗Uninstall Script❗"
+echo -e " ${YELLOW}[12]${NC} Update Script (via GitHub Token)"
+echo -e " ${YELLOW}[13]${NC} ❗Uninstall Script❗"
 echo -e " ${YELLOW}[0]${NC} Keluar"
 echo -e "${BLUE}====================================================${NC}"
-read -p " Pilih Menu [0-12] : " menu_num
+read -p " Pilih Menu [0-13] : " menu_num
 
 case $menu_num in
     1) bash /vps-scripts/add-ssh.sh ;;
@@ -279,7 +280,10 @@ EOF_CONFIG
         [ ! -f "$MENU_LB" ] && MENU_LB="$(pwd)/vps-scripts/load-balancer-menu.sh"
         bash "$MENU_LB"
         ;;
-    12) 
+    12)
+        bash /vps-scripts/update.sh
+        ;;
+    13) 
         if [ -f /vps-scripts/uninstall.sh ]; then bash /vps-scripts/uninstall.sh; fi
         ;;
     0) clear ; exit 0 ;;
