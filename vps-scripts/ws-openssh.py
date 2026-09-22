@@ -94,6 +94,7 @@ class ConnectionHandler(threading.Thread):
         self.real_ip = addr[0] if addr else '127.0.0.1'
         self.target = None
         self.local_port = None
+        self.ssh_started = False
 
     def close(self):
         if self.local_port:
@@ -126,6 +127,7 @@ class ConnectionHandler(threading.Thread):
                 # Raw SSH stream (e.g. from Xray direct fallback or stunnel)
                 self.connect_target('127.0.0.1:109')
                 set_keepalive(self.target)
+                self.ssh_started = True
                 self.target.sendall(client_buffer)
                 self.do_proxy()
                 return
@@ -139,18 +141,21 @@ class ConnectionHandler(threading.Thread):
             if '/vmess' in path:
                 self.target = socket.create_connection(('127.0.0.1', 10001), timeout=5)
                 set_keepalive(self.target)
+                self.ssh_started = True
                 self.target.sendall(client_buffer)
                 self.do_proxy()
                 return
             elif '/vless' in path:
                 self.target = socket.create_connection(('127.0.0.1', 10002), timeout=5)
                 set_keepalive(self.target)
+                self.ssh_started = True
                 self.target.sendall(client_buffer)
                 self.do_proxy()
                 return
             elif '/trojan' in path:
                 self.target = socket.create_connection(('127.0.0.1', 10003), timeout=5)
                 set_keepalive(self.target)
+                self.ssh_started = True
                 self.target.sendall(client_buffer)
                 self.do_proxy()
                 return
@@ -212,7 +217,19 @@ class ConnectionHandler(threading.Thread):
                     if not data:
                         return
                     if sock is self.client:
-                        self.target.sendall(data)
+                        if not self.ssh_started:
+                            if b'SSH-' in data:
+                                self.ssh_started = True
+                                ssh_idx = data.find(b'SSH-')
+                                self.target.sendall(data[ssh_idx:])
+                            elif data.startswith(b'HTTP/') or b'\r\nHTTP/' in data or data.startswith(b'PATCH ') or data.startswith(b'HEAD ') or data.startswith(b'GET '):
+                                # Filter dummy responses dari payload Enhanced ([split]HTTP/ 200)
+                                pass
+                            else:
+                                self.ssh_started = True
+                                self.target.sendall(data)
+                        else:
+                            self.target.sendall(data)
                     else:
                         self.client.sendall(data)
                 except Exception:
