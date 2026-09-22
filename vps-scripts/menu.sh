@@ -67,11 +67,10 @@ echo -e " ${YELLOW}[8]${NC} Web Connection Setting"
 echo -e " ${YELLOW}[9]${NC} Service Status & Restart"
 echo -e " ${YELLOW}[10]${NC} Limit Multi-Login"
 echo -e " ${YELLOW}[11]${NC} Load Balancer & Server Migration"
-echo -e " ${CYAN}[12]${NC} Auto-Kill Akun Expired (SSH, VMess, VLess, Trojan)"
-echo -e " ${RED}[13]${NC} ❗Uninstall Script❗"
+echo -e " ${YELLOW}[12]${NC} ❗Uninstall Script❗"
 echo -e " ${YELLOW}[0]${NC} Keluar"
 echo -e "${BLUE}====================================================${NC}"
-read -p " Pilih Menu [0-13] : " menu_num
+read -p " Pilih Menu [0-12] : " menu_num
 
 case $menu_num in
     1) bash /vps-scripts/add-ssh.sh ;;
@@ -82,18 +81,28 @@ case $menu_num in
         bash /vps-scripts/list-account.sh
         ;;
     6) 
-        echo -e "\n${YELLOW}Pilih Tipe Akun yang akan dihapus:${NC}"
-        echo "1. Akun SSH/WS Tertentu"
-        echo "2. Akun Xray (VMess/VLess/Trojan) Tertentu"
-        echo "3. Auto-Kill & Bersihkan SEMUA Akun Expired"
-        read -p "Pilihan [1/2/3]: " del_opt
-        if [ "$del_opt" == "1" ]; then
-            bash /vps-scripts/del-ssh.sh
-        elif [ "$del_opt" == "2" ]; then
-            bash /vps-scripts/del-account.sh
-        elif [ "$del_opt" == "3" ]; then
-            bash /vps-scripts/auto-kill-expired.sh
-        fi
+        clear
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${GREEN}        DELETE ACCOUNT { SSH/WS & XRAY }          ${NC}"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e " ${YELLOW}[1]${NC} Delete Akun SSH / WS"
+        echo -e " ${YELLOW}[2]${NC} Delete Akun Xray (VMess / VLess / Trojan)"
+        echo -e " ${CYAN}[3]${NC} Auto kill & delete { SSH/WS & Xray }"
+        echo -e " ${YELLOW}[0]${NC} Kembali ke Menu Utama"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        read -p " Pilih Pilihan [0-3]: " del_opt
+        case $del_opt in
+            1) bash /vps-scripts/del-ssh.sh ;;
+            2) bash /vps-scripts/del-account.sh ;;
+            3) 
+                MENU_XP="/usr/local/bin/auto-kill-expired"
+                [ ! -f "$MENU_XP" ] && MENU_XP="/vps-scripts/auto-kill-expired.sh"
+                [ ! -f "$MENU_XP" ] && MENU_XP="$(pwd)/vps-scripts/auto-kill-expired.sh"
+                bash "$MENU_XP"
+                ;;
+            0) menu ;;
+            *) menu ;;
+        esac
         ;;
     7)
         echo -e "\n${CYAN}====================================================${NC}"
@@ -275,13 +284,7 @@ EOF_CONFIG
         [ ! -f "$MENU_LB" ] && MENU_LB="$(pwd)/vps-scripts/load-balancer-menu.sh"
         bash "$MENU_LB"
         ;;
-    12)
-        MENU_XP="/usr/local/bin/auto-kill-expired"
-        [ ! -f "$MENU_XP" ] && MENU_XP="/vps-scripts/auto-kill-expired.sh"
-        [ ! -f "$MENU_XP" ] && MENU_XP="$(pwd)/vps-scripts/auto-kill-expired.sh"
-        bash "$MENU_XP"
-        ;;
-    13) 
+    12) 
         if [ -f /vps-scripts/uninstall.sh ]; then bash /vps-scripts/uninstall.sh; fi
         ;;
     0) clear ; exit 0 ;;
