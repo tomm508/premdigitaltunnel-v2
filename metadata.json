@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "PremDigital Tunnel & Load Balancer Manager",
+  "description": "Dashboard manajemen VPN Tunneling, Multi-Node Load Balancer, dan 1-Click Server Migration untuk VPS SSH & Xray.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,10 +1,11 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, Shield, Globe, Settings, Terminal, Plus, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, Globe, Settings, Terminal, Plus, Activity, Layers } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { collection, onSnapshot, addDoc, doc } from 'firebase/firestore';
 import { db } from './firebase';
+import { LoadBalancerView } from './components/LoadBalancerView';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -86,6 +87,15 @@ export default function App() {
               active={activeTab === 'trojan'} 
               onClick={() => setActiveTab('trojan')} 
             />
+            <div className="pt-4 pb-2 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Infrastruktur
+            </div>
+            <SidebarItem 
+              icon={<Layers className="w-5 h-5" />} 
+              label="Load Balancer & Migrasi" 
+              active={activeTab === 'load-balancer'} 
+              onClick={() => setActiveTab('load-balancer')} 
+            />
           </nav>
         </div>
       </aside>
@@ -114,6 +124,7 @@ export default function App() {
 
         <div className="flex-1 overflow-y-auto p-8">
           {activeTab === 'dashboard' && <DashboardView nodes={nodes} />}
+          {activeTab === 'load-balancer' && <LoadBalancerView nodes={nodes} />}
           {(activeTab === 'vmess' || activeTab === 'vless' || activeTab === 'trojan' || activeTab === 'ssh') && (
             <CreateAccountView protocol={activeTab} selectedNode={selectedNode} />
           )}
