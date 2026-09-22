@@ -66,8 +66,9 @@ defaults
     option  dontlognull
     retries 3
     timeout connect 5000ms
-    timeout client  50000ms
-    timeout server  50000ms
+    timeout client  3600000ms
+    timeout server  3600000ms
+    timeout tunnel  3600000ms
 
 # Statistik Web Dashboard HAProxy (Port 9000)
 frontend stats_fe

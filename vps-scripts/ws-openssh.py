@@ -4,9 +4,22 @@ import socket, threading, select, sys, os, json, time
 LISTENING_ADDR = '0.0.0.0'
 LISTENING_PORT = 80
 BUFLEN = 8192
-TIMEOUT = 60
+TIMEOUT = 86400
 DEFAULT_HOST = '127.0.0.1:22'
 RESPONSE = b'HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n'
+
+def set_keepalive(sock):
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        if hasattr(socket, 'TCP_KEEPIDLE'):
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 20)
+        if hasattr(socket, 'TCP_KEEPINTVL'):
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 5)
+        if hasattr(socket, 'TCP_KEEPCNT'):
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5)
+    except Exception:
+        pass
 
 SESSION_LOCK = threading.Lock()
 ACTIVE_WS_SESSIONS = {}
@@ -107,7 +120,9 @@ class ConnectionHandler(threading.Thread):
             if forwarded:
                 self.real_ip = forwarded.split(',')[0].strip()
             hostPort = self.findHeader(client_buffer, 'X-Real-Host') or DEFAULT_HOST
+            set_keepalive(self.client)
             self.connect_target(hostPort)
+            set_keepalive(self.target)
             self.client.sendall(RESPONSE)
             self.do_proxy()
         except Exception:
