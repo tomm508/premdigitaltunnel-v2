@@ -76,11 +76,14 @@ if [ "$1" == "--update-menu" ]; then
     fetch_script "setup-haproxy-lb.sh" "setup-haproxy-lb.sh"
     fetch_script "migrate.sh" "migrate.sh"
     fetch_script "auto-kill-expired.sh" "auto-kill-expired.sh"
+    fetch_script "premdigital_creator.py" "premdigital_creator.py"
     fetch_script "ws-openssh.py" "ws-openssh.py"
 
     chmod +x *.sh *.py
 
     echo "Menyalin script ke sistem utama..."
+    mkdir -p /vps-scripts
+    [ -f premdigital_creator.py ] && cp -f premdigital_creator.py /vps-scripts/premdigital_creator.py
     cp add-ssh.sh /usr/bin/add-ssh
     cp del-ssh.sh /usr/bin/del-ssh
     cp add-vmess.sh /usr/bin/add-vmess

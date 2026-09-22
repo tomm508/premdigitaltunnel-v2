@@ -54,10 +54,12 @@ def get_pending_commands():
                 fields = doc.get('fields', {})
                 sid = fields.get('serverId', {}).get('stringValue', '')
                 status = fields.get('status', {}).get('stringValue', '')
+                action = fields.get('action', {}).get('stringValue', fields.get('command', {}).get('stringValue', 'create_account')).lower()
                 
                 if sid == SERVER_ID and status == 'pending':
                     commands.append({
                         "id": doc_id,
+                        "action": action,
                         "username": fields.get('username', {}).get('stringValue', ''),
                         "password": fields.get('password', {}).get('stringValue', ''),
                         "protocol": fields.get('protocol', {}).get('stringValue', 'ssh').lower(),
@@ -96,6 +98,20 @@ def create_ssh(username, password, days):
             subprocess.run(f"useradd -e {exp_date} -s /bin/false -M {username}", shell=True, check=True)
         subprocess.run(f'echo "{username}:{password}" | chpasswd', shell=True, check=True)
         return True, f"Akun SSH {username} aktif s/d {exp_date}"
+    except Exception as e:
+        return False, str(e)
+
+def delete_ssh(username):
+    if not username:
+        return False, "Username tidak boleh kosong"
+    try:
+        subprocess.run(f"pkill -u {username}", shell=True)
+        subprocess.run(f"userdel -f {username}", shell=True, check=True)
+        for p in [f"/etc/premdigital/multilogin/{username}", f"/etc/premdigital/user_quota/{username}"]:
+            if os.path.exists(p):
+                try: os.remove(p)
+                except: pass
+        return True, f"Akun SSH {username} berhasil dihapus dari server"
     except Exception as e:
         return False, str(e)
 
@@ -142,21 +158,57 @@ def create_xray(protocol, username, password, user_uuid, days):
     except Exception as e:
         return False, str(e)
 
+def delete_xray(protocol, username):
+    config_path = "/etc/xray/config.json"
+    if not os.path.exists(config_path):
+        return False, f"File config Xray tidak ditemukan di {config_path}"
+    try:
+        with open(config_path, "r") as f:
+            data = json.load(f)
+        for ib in data.get("inbounds", []):
+            if "clients" in ib.get("settings", {}):
+                ib["settings"]["clients"] = [c for c in ib["settings"]["clients"] if c.get("email") != username]
+        with open(config_path, "w") as f:
+            json.dump(data, f, indent=2)
+            
+        db_path = "/etc/premdigital/xray-users.db"
+        if os.path.exists(db_path):
+            with open(db_path, "r") as f:
+                lines = f.readlines()
+            with open(db_path, "w") as f:
+                for line in lines:
+                    if not line.startswith(f"{username} |"):
+                        f.write(line)
+        subprocess.run("systemctl restart xray", shell=True)
+        return True, f"Akun {protocol.upper()} {username} berhasil dihapus dari server"
+    except Exception as e:
+        return False, str(e)
+
 while True:
     commands = get_pending_commands()
     for cmd in commands:
+        action = cmd.get('action', 'create_account').lower()
         proto = cmd['protocol']
         u = cmd['username']
         p = cmd['password']
         days = cmd['activeDays']
-        print(f"[MEMPROSES] {proto.upper()} untuk user '{u}' ({days} hari)...")
         
-        if proto in ["ssh", "websocket"]:
-            success, msg = create_ssh(u, p, days)
-        elif proto in ["vmess", "vless", "trojan"]:
-            success, msg = create_xray(proto, u, p, cmd['uuid'], days)
+        if action in ['delete_account', 'delete', 'del']:
+            print(f"[HAPUS] Menghapus {proto.upper()} user '{u}'...")
+            if proto in ["ssh", "websocket"]:
+                success, msg = delete_ssh(u)
+            elif proto in ["vmess", "vless", "trojan"]:
+                success, msg = delete_xray(proto, u)
+            else:
+                success, msg = False, f"Protokol {proto} tidak dikenal"
         else:
-            success, msg = False, f"Protokol {proto} tidak dikenal"
+            print(f"[MEMPROSES] {proto.upper()} untuk user '{u}' ({days} hari)...")
+            if proto in ["ssh", "websocket"]:
+                success, msg = create_ssh(u, p, days)
+            elif proto in ["vmess", "vless", "trojan"]:
+                success, msg = create_xray(proto, u, p, cmd['uuid'], days)
+            else:
+                success, msg = False, f"Protokol {proto} tidak dikenal"
             
         if success:
             print(f"[SUKSES] {msg}")
