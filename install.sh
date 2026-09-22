@@ -83,6 +83,8 @@ if [ "$1" == "--update-menu" ]; then
 
     echo "Menyalin script ke sistem utama..."
     mkdir -p /vps-scripts
+    cp -f *.sh *.py /vps-scripts/ 2>/dev/null || true
+    chmod +x /vps-scripts/*.sh /vps-scripts/*.py 2>/dev/null || true
     [ -f premdigital_creator.py ] && cp -f premdigital_creator.py /vps-scripts/premdigital_creator.py
     cp add-ssh.sh /usr/bin/add-ssh
     cp del-ssh.sh /usr/bin/del-ssh
@@ -179,11 +181,20 @@ fetch_script "limit-ip.py" "limit-ip.py"
 fetch_script "limit-ip-menu.sh" "limit-ip-menu.sh"
 fetch_script "limit-ip.sh" "limit-ip.sh"
 fetch_script "setup-limit-ip.sh" "setup-limit-ip.sh"
+fetch_script "load-balancer-menu.sh" "load-balancer-menu.sh"
+fetch_script "setup-haproxy-lb.sh" "setup-haproxy-lb.sh"
+fetch_script "migrate.sh" "migrate.sh"
+fetch_script "auto-kill-expired.sh" "auto-kill-expired.sh"
+fetch_script "premdigital_creator.py" "premdigital_creator.py"
 fetch_script "ws-openssh.py" "ws-openssh.py"
 
 chmod +x *.sh *.py
 
 # Copy scripts
+mkdir -p /vps-scripts
+cp -f *.sh *.py /vps-scripts/ 2>/dev/null || true
+chmod +x /vps-scripts/*.sh /vps-scripts/*.py 2>/dev/null || true
+[ -f premdigital_creator.py ] && cp -f premdigital_creator.py /vps-scripts/premdigital_creator.py
 cp add-ssh.sh /usr/bin/add-ssh
 cp del-ssh.sh /usr/bin/del-ssh
 cp add-vmess.sh /usr/bin/add-vmess
@@ -198,7 +209,12 @@ cp limit-ip.sh /usr/bin/limit-ip
 cp limit-ip.sh /usr/local/bin/limit-ip
 cp limit-ip-menu.sh /usr/local/bin/limit-ip-menu
 cp limit-ip.py /usr/local/bin/limit-ip.py
-chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip*
+cp load-balancer-menu.sh /usr/local/bin/load-balancer-menu
+cp migrate.sh /usr/local/bin/migrate
+cp auto-kill-expired.sh /usr/local/bin/auto-kill-expired
+cp auto-kill-expired.sh /usr/bin/auto-kill-expired
+ln -sf /usr/local/bin/auto-kill-expired /usr/bin/xp
+chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip* /usr/local/bin/load-balancer-menu /usr/local/bin/migrate /usr/local/bin/auto-kill-expired /usr/bin/xp
 
 echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
 bash setup-limit-ip.sh

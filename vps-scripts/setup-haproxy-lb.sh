@@ -38,6 +38,13 @@ if ss -tlnp 2>/dev/null | grep -E -q ":443\s"; then
     PORT_HTTPS=8443
 fi
 
+# Deteksi port lokal Xray (apakah 4430 atau 127.0.0.1:4430)
+XRAY_LOCAL_PORT=4430
+if ss -tlnp 2>/dev/null | grep -q "xray"; then
+    detected_xray=$(ss -tlnp 2>/dev/null | grep "xray" | grep -oE "127\.0\.0\.1:[0-9]+" | head -n1 | cut -d: -f2)
+    [ -n "$detected_xray" ] && XRAY_LOCAL_PORT="$detected_xray"
+fi
+
 # 3. Buat Konfigurasi HAProxy Multi-Worker Load Balancing
 echo -e "${YELLOW}[2/4] Mengkonfigurasi Load Balancer (leastconn & health-check)...${NC}"
 cat << EOF > /etc/haproxy/haproxy.cfg
@@ -96,7 +103,7 @@ backend ws_backend_pool
 backend tls_backend_pool
     mode tcp
     balance leastconn
-    server xray_tls 127.0.0.1:443 check
+    server xray_tls 127.0.0.1:$XRAY_LOCAL_PORT check
     server stunnel_tls 127.0.0.1:8443 check backup
 EOF
 

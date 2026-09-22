@@ -100,6 +100,7 @@ if [ -f "$XRAY_DB" ] && [ -f "$XRAY_CONFIG" ]; then
     expired_xray_users=()
     temp_db="/tmp/xray-users-new.db"
     rm -f "$temp_db"
+    touch "$temp_db"
 
     while IFS=" | " read -r user uuid_pass exp proto; do
         # Format exp adalah YYYY-MM-DD
@@ -126,12 +127,6 @@ if [ -f "$XRAY_DB" ] && [ -f "$XRAY_CONFIG" ]; then
 import json
 
 config_path = "$XRAY_CONFIG"
-expired_list = "$xray_deleted"
-
-with open("$LOG_FILE", "r") as lf:
-    lines = lf.readlines()
-
-# Baca user yang baru dihapus hari ini
 to_delete = []
 EOF_USERS = """
 $(for item in "${expired_xray_users[@]}"; do echo "$item"; done)
@@ -139,7 +134,7 @@ $(for item in "${expired_xray_users[@]}"; do echo "$item"; done)
 for line in EOF_USERS.strip().split("\n"):
     if line.strip():
         parts = line.strip().split(":")
-        to_delete.append(parts[0])
+        to_delete.append(parts[0].strip().lower())
 
 try:
     with open(config_path, "r") as f:
@@ -150,7 +145,11 @@ try:
         settings = ib.get("settings", {})
         if "clients" in settings and isinstance(settings["clients"], list):
             initial_count = len(settings["clients"])
-            settings["clients"] = [c for c in settings["clients"] if c.get("email") not in to_delete]
+            settings["clients"] = [
+                c for c in settings["clients"]
+                if c.get("email", "").strip().lower() not in to_delete and
+                   c.get("password", "").strip().lower() not in to_delete
+            ]
             if len(settings["clients"]) != initial_count:
                 changed = True
 

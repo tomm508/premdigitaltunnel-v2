@@ -29,6 +29,9 @@ fi
 echo -e "\e[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 read -rp "Masukkan Username yang ingin dihapus : " user
 
+# Bersihkan karakter spasi atau newline
+user=$(echo "$user" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
 if [[ -z "$user" ]]; then
     echo -e "\e[1;31mUsername tidak boleh kosong!\e[0m"
     sleep 2
@@ -36,42 +39,74 @@ if [[ -z "$user" ]]; then
     exit 1
 fi
 
-found_xray=0
-
 # Backup config xray sebelum diedit
 if [ -f "$CONFIG_XRAY" ]; then
     cp -f "$CONFIG_XRAY" "${CONFIG_XRAY}.bak" 2>/dev/null
 fi
 
-# Cek & Hapus dari Xray config.json
-if grep -q "\"email\": \"${user}\"" "$CONFIG_XRAY" 2>/dev/null; then
-    python3 - <<PY_EOF
+# Eksekusi penghapusan menggunakan Python secara menyeluruh (config.json & xray-users.db)
+result=$(python3 - <<PY_EOF
 import json
-try:
-    with open("$CONFIG_XRAY", "r") as f:
-        data = json.load(f)
-    for ib in data.get("inbounds", []):
-        if "clients" in ib.get("settings", {}):
-            ib["settings"]["clients"] = [c for c in ib["settings"]["clients"] if c.get("email") != "$user"]
-    with open("$CONFIG_XRAY", "w") as f:
-        json.dump(data, f, indent=2)
-except Exception as e:
-    pass
-PY_EOF
-    
-    # Hapus dari Xray DB log
-    if [ -f "$XRAY_DB" ]; then
-        sed -i "/^${user} |/d" "$XRAY_DB" 2>/dev/null
-    fi
-    
-    systemctl restart xray > /dev/null 2>&1
-    found_xray=1
-fi
+import os
 
-if [[ $found_xray -eq 0 ]]; then
-    echo -e "\e[1;31mUsername '${user}' tidak ditemukan di Xray!\e[0m"
-else
+target = "$user".strip()
+deleted_any = False
+
+# 1. Hapus dari /etc/xray/config.json
+cfg_path = "$CONFIG_XRAY"
+if os.path.exists(cfg_path):
+    try:
+        with open(cfg_path, "r") as f:
+            data = json.load(f)
+        changed = False
+        for ib in data.get("inbounds", []):
+            settings = ib.get("settings", {})
+            if "clients" in settings and isinstance(settings["clients"], list):
+                orig_len = len(settings["clients"])
+                settings["clients"] = [
+                    c for c in settings["clients"]
+                    if c.get("email", "").strip().lower() != target.lower() and
+                       c.get("password", "").strip().lower() != target.lower()
+                ]
+                if len(settings["clients"]) != orig_len:
+                    changed = True
+                    deleted_any = True
+        if changed:
+            with open(cfg_path, "w") as f:
+                json.dump(data, f, indent=2)
+    except Exception as e:
+        pass
+
+# 2. Hapus dari /etc/premdigital/xray-users.db
+db_path = "$XRAY_DB"
+if os.path.exists(db_path):
+    try:
+        with open(db_path, "r") as f:
+            lines = f.readlines()
+        new_lines = []
+        for line in lines:
+            parts = [p.strip() for p in line.split("|")]
+            if parts and parts[0].lower() == target.lower():
+                deleted_any = True
+            else:
+                new_lines.append(line)
+        with open(db_path, "w") as f:
+            f.writelines(new_lines)
+    except Exception as e:
+        pass
+
+if deleted_any:
+    print("SUCCESS")
+else:
+    print("NOT_FOUND")
+PY_EOF
+)
+
+if [[ "$result" == *"SUCCESS"* ]]; then
+    systemctl restart xray > /dev/null 2>&1
     echo -e "\e[1;32m✅ Akun '${user}' berhasil dihapus dari server!\e[0m"
+else
+    echo -e "\e[1;31mUsername '${user}' tidak ditemukan di sistem Xray maupun database!\e[0m"
 fi
 
 echo -e "\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
