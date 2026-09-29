@@ -95,12 +95,6 @@ if [ -f /etc/vps-domain.txt ]; then
 fi
 [ -z "$domain" ] && domain="Belum diset"
 
-domain_cf=""
-if [ -f /etc/vps-cloudfront.txt ]; then
-    domain_cf=$(head -n 1 /etc/vps-cloudfront.txt 2>/dev/null | tr -d '\r\n ')
-fi
-[ -z "$domain_cf" ] && domain_cf="Belum diset"
-
 # Cek Status Service
 if systemctl is-active --quiet ssh 2>/dev/null || systemctl is-active --quiet sshd 2>/dev/null || systemctl is-active --quiet ws-openssh 2>/dev/null; then 
     ssh_st="${GREEN}ON${NC}"
@@ -135,7 +129,6 @@ echo -e " ISP       : ${CYAN}$ISP${NC}"
 echo -e " RAM Usage : ${CYAN}$RAM${NC}"
 echo -e " Bandwidth : ${CYAN}$BWIDTH${NC}"
 echo -e " Domain    : ${CYAN}$domain${NC}"
-echo -e " CloudFront: ${CYAN}$domain_cf${NC}"
 echo -e "${BLUE}====================================================${NC}"
 echo -e " ╭──────────────────────────────────────────────────╮"
 echo -e " │  SSH/WS: $ssh_st  │  X-RAY: $xray_st  │  UDP: $udp_st  │  $sys_health   │"
@@ -146,7 +139,7 @@ echo -e " ${YELLOW}[3]${NC} Creat Vless"
 echo -e " ${YELLOW}[4]${NC} Creat Trojan"
 echo -e " ${YELLOW}[5]${NC} Account Summary { SSH/WS & Xray }"
 echo -e " ${YELLOW}[6]${NC} Delete Account { SSH/WS & Xray }"
-echo -e " ${YELLOW}[7]${NC} Domain & CloudFront Manager"
+echo -e " ${YELLOW}[7]${NC} Change Domain"
 echo -e " ${YELLOW}[8]${NC} Web Connection Setting"
 echo -e " ${YELLOW}[9]${NC} Service Status & Restart"
 echo -e " ${YELLOW}[10]${NC} Limit Multi-Login"
@@ -186,43 +179,30 @@ case $menu_num in
         ;;
     7)
         echo -e "\n${CYAN}====================================================${NC}"
-        echo -e "${GREEN}             KELOLA DOMAIN & CLOUDFRONT             ${NC}"
+        echo -e "${GREEN}                  GANTI DOMAIN VPS                  ${NC}"
         echo -e "${CYAN}====================================================${NC}"
-        echo -e " [1] Ganti Domain Direct / VPS (Saat ini: ${CYAN}${domain}${NC})"
-        echo -e " [2] Ganti / Atur Domain CloudFront (Saat ini: ${CYAN}${domain_cf}${NC})"
-        echo -e " [0] Kembali ke Menu Utama"
-        echo -e "${CYAN}====================================================${NC}"
-        read -p " Pilihan [0-2]: " dom_opt
-        if [ "$dom_opt" == "1" ]; then
-            read -p " Masukkan Domain Direct Baru: " new_domain
-            if [ -n "$new_domain" ]; then
-                echo "$new_domain" > /etc/vps-domain.txt
-                echo -e "\n${YELLOW}[1/3] Menghasilkan Sertifikat SSL baru untuk $new_domain...${NC}"
-                mkdir -p /etc/xray
-                openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -sha256 \
-                -subj "/C=ID/ST=DKI Jakarta/L=Jakarta/O=PremDigital/OU=PremDigital/CN=$new_domain" \
-                -out /etc/xray/xray.crt -keyout /etc/xray/xray.key 2>/dev/null
-                chmod 644 /etc/xray/xray.crt 2>/dev/null
-                chmod 600 /etc/xray/xray.key 2>/dev/null
-                
-                echo -e "${YELLOW}[2/3] Merestart Stunnel4 & Xray...${NC}"
-                systemctl restart stunnel4 2>/dev/null || true
-                systemctl restart xray 2>/dev/null || true
-                systemctl restart ws-openssh 2>/dev/null || true
-                
-                echo -e "${GREEN}[3/3] Sukses! Domain VPS berhasil diubah ke: $new_domain${NC}"
-            fi
-        elif [ "$dom_opt" == "2" ]; then
-            read -p " Masukkan Domain CloudFront Baru (contoh: dxxx.cloudfront.net): " new_cf
-            if [ -n "$new_cf" ]; then
-                echo "$new_cf" > /etc/vps-cloudfront.txt
-                echo -e "${GREEN}Sukses! Domain CloudFront disimpan: $new_cf${NC}"
-            fi
+        read -p " Masukkan Domain Baru: " new_domain
+        if [ -n "$new_domain" ]; then
+            echo "$new_domain" > /etc/vps-domain.txt
+            echo -e "\n${YELLOW}[1/3] Menghasilkan Sertifikat SSL baru untuk $new_domain...${NC}"
+            mkdir -p /etc/xray
+            openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -sha256 \
+            -subj "/C=ID/ST=DKI Jakarta/L=Jakarta/O=PremDigital/OU=PremDigital/CN=$new_domain" \
+            -out /etc/xray/xray.crt -keyout /etc/xray/xray.key 2>/dev/null
+            chmod 644 /etc/xray/xray.crt 2>/dev/null
+            chmod 600 /etc/xray/xray.key 2>/dev/null
+            
+            echo -e "${YELLOW}[2/3] Merestart Stunnel4 & Xray...${NC}"
+            systemctl restart stunnel4 2>/dev/null || true
+            systemctl restart xray 2>/dev/null || true
+            systemctl restart ws-openssh 2>/dev/null || true
+            
+            echo -e "${GREEN}[3/3] Sukses! Domain VPS berhasil diubah ke: $new_domain${NC}"
+            echo ""
+            echo -e "${YELLOW}====================================================${NC}"
+            read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
+            menu
         fi
-        echo ""
-        echo -e "${YELLOW}====================================================${NC}"
-        read -n 1 -s -r -p "Tekan Enter Untuk Kembali Ke Menu Utama..."
-        menu
         ;;
     8)
         clear
