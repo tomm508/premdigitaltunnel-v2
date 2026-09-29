@@ -77,6 +77,7 @@ if [ "$1" == "--update-menu" ]; then
     fetch_script "migrate.sh" "migrate.sh"
     fetch_script "auto-kill-expired.sh" "auto-kill-expired.sh"
     fetch_script "optimize-speed.sh" "optimize-speed.sh"
+    fetch_script "update.sh" "update.sh"
     fetch_script "premdigital_creator.py" "premdigital_creator.py"
     fetch_script "ws-openssh.py" "ws-openssh.py"
 
@@ -87,6 +88,7 @@ if [ "$1" == "--update-menu" ]; then
     cp -f *.sh *.py /vps-scripts/ 2>/dev/null || true
     chmod +x /vps-scripts/*.sh /vps-scripts/*.py 2>/dev/null || true
     [ -f premdigital_creator.py ] && cp -f premdigital_creator.py /vps-scripts/premdigital_creator.py
+    [ -f update.sh ] && cp -f update.sh /usr/local/bin/update-script && chmod +x /usr/local/bin/update-script
     cp add-ssh.sh /usr/bin/add-ssh
     cp del-ssh.sh /usr/bin/del-ssh
     cp add-vmess.sh /usr/bin/add-vmess
@@ -190,6 +192,7 @@ fetch_script "setup-haproxy-lb.sh" "setup-haproxy-lb.sh"
 fetch_script "migrate.sh" "migrate.sh"
 fetch_script "auto-kill-expired.sh" "auto-kill-expired.sh"
 fetch_script "optimize-speed.sh" "optimize-speed.sh"
+fetch_script "update.sh" "update.sh"
 fetch_script "premdigital_creator.py" "premdigital_creator.py"
 fetch_script "ws-openssh.py" "ws-openssh.py"
 
@@ -200,6 +203,7 @@ mkdir -p /vps-scripts
 cp -f *.sh *.py /vps-scripts/ 2>/dev/null || true
 chmod +x /vps-scripts/*.sh /vps-scripts/*.py 2>/dev/null || true
 [ -f premdigital_creator.py ] && cp -f premdigital_creator.py /vps-scripts/premdigital_creator.py
+[ -f update.sh ] && cp -f update.sh /usr/local/bin/update-script && chmod +x /usr/local/bin/update-script
 cp add-ssh.sh /usr/bin/add-ssh
 cp del-ssh.sh /usr/bin/del-ssh
 cp add-vmess.sh /usr/bin/add-vmess

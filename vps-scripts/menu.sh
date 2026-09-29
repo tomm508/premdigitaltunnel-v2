@@ -144,7 +144,7 @@ echo -e " ${YELLOW}[8]${NC} Web Connection Setting"
 echo -e " ${YELLOW}[9]${NC} Service Status & Restart"
 echo -e " ${YELLOW}[10]${NC} Limit Multi-Login"
 echo -e " ${YELLOW}[11]${NC} Load Balancer & Server Migration"
-echo -e " ${YELLOW}[12]${NC} Update Script (via GitHub Token)"
+echo -e " ${YELLOW}[12]${NC} Update Script"
 echo -e " ${YELLOW}[13]${NC} ❗Uninstall Script❗"
 echo -e " ${YELLOW}[0]${NC} Keluar"
 echo -e "${BLUE}====================================================${NC}"
@@ -358,7 +358,20 @@ EOF_CONFIG
         bash "$MENU_LB"
         ;;
     12)
-        bash /vps-scripts/update.sh
+        if [ ! -f /vps-scripts/update.sh ]; then
+            echo -e "${CYAN}Mengunduh script update...${NC}"
+            mkdir -p /vps-scripts
+            curl -fsSL https://raw.githubusercontent.com/tomm508/premdigitaltunnel-v2/main/vps-scripts/update.sh -o /vps-scripts/update.sh 2>/dev/null || \
+            wget -qO /vps-scripts/update.sh https://raw.githubusercontent.com/tomm508/premdigitaltunnel-v2/main/vps-scripts/update.sh 2>/dev/null
+            chmod +x /vps-scripts/update.sh 2>/dev/null
+        fi
+        if [ -f /vps-scripts/update.sh ]; then
+            bash /vps-scripts/update.sh
+        else
+            echo -e "${RED}[ERROR] File /vps-scripts/update.sh tidak ditemukan dan gagal diunduh.${NC}"
+            sleep 2
+            menu
+        fi
         ;;
     13) 
         if [ -f /vps-scripts/uninstall.sh ]; then bash /vps-scripts/uninstall.sh; fi
