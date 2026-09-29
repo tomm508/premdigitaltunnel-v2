@@ -31,8 +31,34 @@ exp=$(chage -l $username | grep "Account expires" | awk -F": " '{print $2}')
 
 clear
 
-ISP=$(curl -s -m 5 ipinfo.io/org | cut -d " " -f 2- || echo "Unknown")
-CITY=$(curl -s -m 5 ipinfo.io/city || echo "Unknown")
+# Ambil ISP dengan Cache & Cadangan
+ISP=""
+if [ -s /etc/premdigital/isp.cache ]; then
+    ISP=$(cat /etc/premdigital/isp.cache 2>/dev/null | tr -d '\r\n')
+fi
+if [ -z "$ISP" ] || [[ "$ISP" == *"Rate limit"* ]] || [[ "$ISP" == *"429"* ]]; then
+    RAW_ISP=$(curl -s -m 2 ipinfo.io/org 2>/dev/null)
+    if [ -n "$RAW_ISP" ] && [[ ! "$RAW_ISP" == *"Rate limit"* ]] && [[ ! "$RAW_ISP" == *"429"* ]]; then
+        ISP=$(echo "$RAW_ISP" | sed -E 's/^AS[0-9]+ //')
+    fi
+    [ -z "$ISP" ] && ISP=$(curl -s -m 2 "http://ip-api.com/line/?fields=isp" 2>/dev/null)
+    [ -n "$ISP" ] && echo "$ISP" > /etc/premdigital/isp.cache 2>/dev/null
+fi
+[ -z "$ISP" ] && ISP="Internet Provider"
+
+CITY=""
+if [ -s /etc/premdigital/city.cache ]; then
+    CITY=$(cat /etc/premdigital/city.cache 2>/dev/null | tr -d '\r\n')
+fi
+if [ -z "$CITY" ] || [[ "$CITY" == *"Rate limit"* ]] || [[ "$CITY" == *"429"* ]]; then
+    RAW_CITY=$(curl -s -m 2 ipinfo.io/city 2>/dev/null)
+    if [ -n "$RAW_CITY" ] && [[ ! "$RAW_CITY" == *"Rate limit"* ]] && [[ ! "$RAW_CITY" == *"429"* ]]; then
+        CITY="$RAW_CITY"
+    fi
+    [ -z "$CITY" ] && CITY=$(curl -s -m 2 "http://ip-api.com/line/?fields=city" 2>/dev/null)
+    [ -n "$CITY" ] && echo "$CITY" > /etc/premdigital/city.cache 2>/dev/null
+fi
+[ -z "$CITY" ] && CITY="Unknown"
 
 clear
 echo -e "\e[1;32m✅  SUKSES CREATE AKUN SSH/WS\e[0m"

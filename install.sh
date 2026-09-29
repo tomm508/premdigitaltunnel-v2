@@ -112,6 +112,9 @@ if [ "$1" == "--update-menu" ]; then
     echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
     bash setup-limit-ip.sh
 
+    echo "Mengoptimalkan Kernel BBR & Socket Buffer (Anti-DC)..."
+    bash optimize-speed.sh
+
     # Setup Cron Auto Kill Expired Accounts (Tiap Jam 00:00 & tiap jam)
     cat > /etc/cron.d/auto-kill-expired << 'CRON_EOF'
 0 0 * * * root /usr/local/bin/auto-kill-expired --cron >> /var/log/premdigital-expired.log 2>&1
@@ -221,8 +224,22 @@ chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/
 echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
 bash setup-limit-ip.sh
 
+echo "Mengaktifkan Kernel Turbo BBR & TCP Buffer Optimizer..."
+bash optimize-speed.sh
 
-
+# ==========================================
+# INSTALL DROPBEAR (PORT 109 FOR TUNNELING)
+# ==========================================
+echo -e "\e[33m[INFO] Menginstal & Konfigurasi Dropbear (Port 109)...\e[0m"
+apt-get install -y dropbear
+cat > /etc/default/dropbear << 'END_DROPBEAR'
+NO_START=0
+DROPBEAR_PORT=109
+DROPBEAR_EXTRA_ARGS="-p 127.0.0.1:109 -W 65536 -K 30 -I 60"
+DROPBEAR_BANNER="/etc/issue.net"
+DROPBEAR_RECEIVE_WINDOW=65536
+END_DROPBEAR
+systemctl restart dropbear 2>/dev/null || true
 
 # ==========================================
 # INSTALL STUNNEL5 (TLS WS SSH)
@@ -267,6 +284,8 @@ User=root
 ExecStart=/usr/bin/python3 /usr/local/bin/ws-openssh
 Restart=always
 RestartSec=3
+LimitNOFILE=1000000
+LimitNPROC=10000
 
 [Install]
 WantedBy=multi-user.target

@@ -161,27 +161,37 @@ def scan_ssh_logins():
 
     return user_data
 
-def scan_xray_logins(window_seconds=120):
+def scan_xray_logins(window_seconds=30):
     """
     Scans recent /var/log/xray/access.log entries for active Vmess, Vless, Trojan connections.
-    Returns: dict user -> { "ips": set(), "proto": str, "type": "xray" }
+    Hanya menghitung koneksi yang benar-benar aktif dalam 30 detik terakhir untuk mencegah false-positive saat penggunaan berat/streaming.
     """
     user_data = defaultdict(lambda: {"ips": set(), "proto": "xray", "type": "xray"})
     if not os.path.exists(XRAY_LOG):
         return user_data
 
     try:
-        # Read last 800 lines of xray access log
-        proc = subprocess.run(["tail", "-n", "800", XRAY_LOG], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        # Read last 300 lines of xray access log
+        proc = subprocess.run(["tail", "-n", "300", XRAY_LOG], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         lines = proc.stdout.splitlines()
 
-        # Typical line:
-        # 2026/09/20 12:34:56 180.252.1.2:51234 accepted tcp:1.1.1.1:443 [vmess] email: testuser
         now = time.time()
         for line in lines:
             line = line.strip()
             if not line or "accepted" not in line or "email:" not in line:
                 continue
+
+            # Check timestamp (Format: YYYY/MM/DD HH:MM:SS)
+            parts = line.split()
+            if len(parts) >= 2:
+                try:
+                    time_str = f"{parts[0]} {parts[1]}"
+                    log_dt = datetime.datetime.strptime(time_str, "%Y/%m/%d %H:%M:%S")
+                    log_ts = log_dt.timestamp()
+                    if (now - log_ts) > window_seconds:
+                        continue
+                except Exception:
+                    pass
 
             # Extract user & protocol
             match = re.search(r'([0-9a-fA-F\.:]+):\d+\s+accepted\s+\S+\s+\[(\w+)\]\s+email:\s+(\S+)', line)
@@ -276,14 +286,8 @@ def perform_check_and_kill(dry_run=False):
                 except Exception as e:
                     log_event(f"[ERROR] Gagal memutus sesi SSH '{username}': {e}")
             else:
-                need_xray_restart = True
-
-        if need_xray_restart:
-            try:
-                subprocess.run(["systemctl", "restart", "xray"], check=False)
-                log_event("[SUCCESS] Service Xray di-restart untuk memutuskan sambungan multi-login ilegal.")
-            except Exception as e:
-                log_event(f"[ERROR] Gagal me-restart Xray: {e}")
+                # Untuk Xray: Catat pelanggaran tanpa me-restart service global agar user lain tidak terputus
+                log_event(f"[WARNING] Akun Xray '{username}' melanggar batas IP. Pelanggaran dicatat ke sistem.")
 
     return status_payload
 

@@ -9,39 +9,116 @@ CYAN='\e[36m'
 RED='\e[31m'
 NC='\e[0m'
 
-# Ambil IP dan RAM
-MYIP=$(curl -s -m 3 ipv4.icanhazip.com || echo "Unknown")
-RAM=$(free -m | awk 'NR==2{printf "%s/%sMB { %.2f%% }", $3,$2,$3*100/$2 }')
+# Direktori Cache Konfigurasi
+mkdir -p /etc/premdigital 2>/dev/null
 
-# Ambil OS dan ISP
-OS=$(cat /etc/os-release | grep -w PRETTY_NAME | head -n1 | cut -d '"' -f 2)
-ISP=$(curl -s -m 5 ipinfo.io/org | cut -d " " -f 2- || echo "Unknown")
+# Ambil IP VPS dengan Cache & Cadangan Multi-Provider
+MYIP=""
+if [ -s /etc/premdigital/myip.cache ]; then
+    MYIP=$(cat /etc/premdigital/myip.cache 2>/dev/null | tr -d '\r\n ')
+fi
+if [ -z "$MYIP" ] || [ "$MYIP" == "Unknown" ]; then
+    MYIP=$(curl -s -m 2 ipv4.icanhazip.com 2>/dev/null | tr -d '\r\n ')
+    [ -z "$MYIP" ] && MYIP=$(curl -s -m 2 api.ipify.org 2>/dev/null | tr -d '\r\n ')
+    [ -z "$MYIP" ] && MYIP=$(curl -s -m 2 ipinfo.io/ip 2>/dev/null | tr -d '\r\n ')
+    [ -z "$MYIP" ] && MYIP=$(ip -4 addr show scope global 2>/dev/null | grep -Po '(?<=inet )\d+(\.\d+){3}' | head -n1)
+    [ -z "$MYIP" ] && MYIP=$(hostname -I 2>/dev/null | awk '{print $1}')
+    [ -n "$MYIP" ] && echo "$MYIP" > /etc/premdigital/myip.cache 2>/dev/null
+fi
+[ -z "$MYIP" ] && MYIP="Unknown"
 
-# Ambil Bandwidth (Membaca tx/rx dari interface utama dan diformat otomatis KB/MB/GB/TB)
-IFACE=$(ip route | grep default | awk '{print $5}' | head -n1)
-if [ -n "$IFACE" ] && [ -f /sys/class/net/$IFACE/statistics/rx_bytes ]; then
-    RX=$(cat /sys/class/net/$IFACE/statistics/rx_bytes)
-    TX=$(cat /sys/class/net/$IFACE/statistics/tx_bytes)
-    
-    # Fungsi konversi bytes ke human readable (KB, MB, GB, TB)
-    TX_FORMAT=$(echo $TX | awk '{ split("B KB MB GB TB", v); s=1; while($1>1024){$1/=1024; s++} printf "%.2f %s", $1, v[s] }')
-    
+# Ambil RAM
+RAM_DATA=$(free -m 2>/dev/null | awk 'NR==2{if($2>0) printf "%s/%sMB { %.2f%% }", $3,$2,$3*100/$2; else print ""}')
+if [ -n "$RAM_DATA" ]; then
+    RAM="$RAM_DATA"
+else
+    RAM="N/A"
+fi
+
+# Ambil OS
+OS=""
+if [ -f /etc/os-release ]; then
+    OS=$(grep -w PRETTY_NAME /etc/os-release 2>/dev/null | head -n1 | sed -e 's/^PRETTY_NAME=//' -e 's/^"//' -e 's/"$//')
+fi
+[ -z "$OS" ] && OS=$(cat /etc/issue 2>/dev/null | head -n1 | awk '{print $1,$2,$3}')
+[ -z "$OS" ] && OS=$(uname -s -r 2>/dev/null)
+[ -z "$OS" ] && OS="Linux OS"
+
+# Ambil ISP dengan Cache & Cadangan Multi-Provider (Anti Rate-Limit & Anti Blank)
+ISP=""
+if [ -s /etc/premdigital/isp.cache ]; then
+    ISP=$(cat /etc/premdigital/isp.cache 2>/dev/null | tr -d '\r\n')
+fi
+if [ -z "$ISP" ] || [[ "$ISP" == *"Rate limit"* ]] || [[ "$ISP" == *"Unknown"* ]] || [[ "$ISP" == *"error"* ]] || [[ "$ISP" == *"429"* ]]; then
+    RAW_ISP=$(curl -s -m 2 ipinfo.io/org 2>/dev/null)
+    if [ -n "$RAW_ISP" ] && [[ ! "$RAW_ISP" == *"Rate limit"* ]] && [[ ! "$RAW_ISP" == *"error"* ]] && [[ ! "$RAW_ISP" == *"429"* ]]; then
+        ISP=$(echo "$RAW_ISP" | sed -E 's/^AS[0-9]+ //')
+    fi
+    if [ -z "$ISP" ] || [[ "$ISP" == *"Rate limit"* ]]; then
+        RAW_ISP2=$(curl -s -m 2 "http://ip-api.com/line/?fields=isp" 2>/dev/null)
+        [ -n "$RAW_ISP2" ] && ISP="$RAW_ISP2"
+    fi
+    if [ -z "$ISP" ] || [[ "$ISP" == *"Rate limit"* ]]; then
+        RAW_ISP3=$(curl -s -m 2 "https://ipapi.co/org" 2>/dev/null)
+        [ -n "$RAW_ISP3" ] && [[ ! "$RAW_ISP3" == *"error"* ]] && ISP="$RAW_ISP3"
+    fi
+    if [ -n "$ISP" ] && [[ ! "$ISP" == *"Rate limit"* ]] && [[ ! "$ISP" == *"429"* ]]; then
+        echo "$ISP" > /etc/premdigital/isp.cache 2>/dev/null
+    fi
+fi
+[ -z "$ISP" ] && ISP="Internet Provider"
+
+# Ambil Bandwidth (Deteksi Interface Handal)
+IFACE=$(ip -4 route ls 2>/dev/null | grep default | grep -Po '(?<=dev )\S+' | head -n1)
+[ -z "$IFACE" ] && IFACE=$(ip route get 1.1.1.1 2>/dev/null | grep -Po '(?<=dev )\S+' | head -n1)
+[ -z "$IFACE" ] && IFACE=$(ip route 2>/dev/null | grep default | awk '{for(i=1;i<=NF;i++) if($i=="dev") print $(i+1)}' | head -n1)
+[ -z "$IFACE" ] && IFACE=$(ls /sys/class/net 2>/dev/null | grep -vE 'lo|docker|tun|wg|veth' | head -n1)
+
+if [ -n "$IFACE" ] && [ -f "/sys/class/net/$IFACE/statistics/tx_bytes" ]; then
+    TX=$(cat "/sys/class/net/$IFACE/statistics/tx_bytes" 2>/dev/null || echo 0)
+    TX_FORMAT=$(awk -v tx="$TX" 'BEGIN {
+        split("B KB MB GB TB", v);
+        s=1;
+        while(tx>1024 && s<5){tx/=1024; s++}
+        printf "%.2f %s", tx, v[s]
+    }')
+    [ -z "$TX_FORMAT" ] && TX_FORMAT="0.00 B"
     BWIDTH="$TX_FORMAT { 5TB }"
 else
-    BWIDTH="Unknown"
+    BWIDTH="0.00 B { 5TB }"
 fi
 
+# Ambil Domain
+domain=""
 if [ -f /etc/vps-domain.txt ]; then
-    domain=$(cat /etc/vps-domain.txt)
-else
-    domain="Belum diset"
+    domain=$(head -n 1 /etc/vps-domain.txt 2>/dev/null | tr -d '\r\n ')
 fi
+[ -z "$domain" ] && domain="Belum diset"
 
 # Cek Status Service
-if systemctl is-active --quiet ssh; then ssh_st="${GREEN}ON${NC}"; else ssh_st="${RED}OFF${NC}"; fi
-if systemctl is-active --quiet xray; then xray_st="${GREEN}ON${NC}"; else xray_st="${RED}OFF${NC}"; fi
-if systemctl is-active --quiet udp-custom || systemctl is-active --quiet badvpn-7100; then udp_st="${GREEN}ON${NC}"; else udp_st="${RED}OFF${NC}"; fi
-sys_health="${GREEN}GOOD${NC}"
+if systemctl is-active --quiet ssh 2>/dev/null || systemctl is-active --quiet sshd 2>/dev/null || systemctl is-active --quiet ws-openssh 2>/dev/null; then 
+    ssh_st="${GREEN}ON${NC}"
+else 
+    ssh_st="${RED}OFF${NC}"
+fi
+
+if systemctl is-active --quiet xray 2>/dev/null; then 
+    xray_st="${GREEN}ON${NC}"
+else 
+    xray_st="${RED}OFF${NC}"
+fi
+
+if systemctl is-active --quiet udp-custom 2>/dev/null || systemctl is-active --quiet badvpn-7100 2>/dev/null; then 
+    udp_st="${GREEN}ON${NC}"
+else 
+    udp_st="${RED}OFF${NC}"
+fi
+
+if [[ "$ssh_st" =~ "OFF" ]] || [[ "$xray_st" =~ "OFF" ]]; then
+    sys_health="${YELLOW}WARN${NC}"
+else
+    sys_health="${GREEN}GOOD${NC}"
+fi
 
 echo -e "${BLUE}====================================================${NC}"
 echo -e "${GREEN}               PREMDIGITAL TUNNEL V2                ${NC}"

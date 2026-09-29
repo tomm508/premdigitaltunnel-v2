@@ -13,8 +13,8 @@ def set_keepalive(sock):
     try:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 262144)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 262144)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1048576)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1048576)
         if hasattr(socket, 'TCP_KEEPIDLE'):
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 20)
         if hasattr(socket, 'TCP_KEEPINTVL'):
@@ -55,24 +55,30 @@ class Server(threading.Thread):
             self.soc.bind((self.host, int(self.port)))
         except Exception as e:
             return
-        self.soc.listen(100)
+        self.soc.listen(1024)
         self.running = True
         while self.running:
             try:
                 c, addr = self.soc.accept()
                 c.setblocking(True)
+                set_keepalive(c)
                 conn = ConnectionHandler(c, self, addr)
                 conn.start()
                 self.addConn(conn)
             except socket.timeout:
                 continue
-            except Exception:
-                break
+            except Exception as e:
+                # Anti-Crash: Jangan break loop accept saat ada lonjakan koneksi / EMFILE
+                time.sleep(0.05)
+                continue
         self.close()
 
     def addConn(self, conn):
         with self.threadsLock:
-            if self.running: self.threads.append(conn)
+            if self.running:
+                # Bersihkan thread mati secara periodik
+                self.threads = [t for t in self.threads if t.is_alive()]
+                self.threads.append(conn)
 
     def removeConn(self, conn):
         with self.threadsLock:
@@ -83,7 +89,10 @@ class Server(threading.Thread):
         with self.threadsLock:
             threads = list(self.threads)
             for c in threads: c.close()
-        self.soc.close()
+        try:
+            self.soc.close()
+        except Exception:
+            pass
 
 class ConnectionHandler(threading.Thread):
     def __init__(self, socClient, server, addr):
