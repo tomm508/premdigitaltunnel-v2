@@ -15,7 +15,7 @@ for svc in "${services[@]}"; do
 done
 
 # Badvpn dipersingkat
-if systemctl is-active --quiet badvpn-7100 && systemctl is-active --quiet badvpn-7200 && systemctl is-active --quiet badvpn-7300; then
+if (systemctl is-active --quiet badvpn-7300 || systemctl is-active --quiet badvpn-7100 || systemctl is-active --quiet udpgw) || pgrep -f badvpn-udpgw >/dev/null; then
     printf " 🔹 %-15s : \e[1;32m[ RUNNING ]\e[0m\n" "badvpn (71-73)"
 else
     printf " 🔹 %-15s : \e[1;31m[ STOPPED / ERROR ]\e[0m\n" "badvpn (71-73)"
