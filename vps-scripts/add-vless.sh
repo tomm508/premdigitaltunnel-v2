@@ -49,6 +49,14 @@ while true; do
     fi
     if grep -q "\"email\": \"${user}\"" "$CONFIG_XRAY" 2>/dev/null; then
         echo -e "\e[1;31mUsername '${user}' sudah ada di sistem Xray!\e[0m"
+        echo -e " \e[33m[1]\e[0m Masukkan username lain"
+        echo -e " \e[33m[0]\e[0m Kembali ke Menu Utama"
+        read -rp " Pilihan [0-1, Default 1]: " -e opt_dup
+        if [ "$opt_dup" == "0" ]; then
+            menu
+            exit 0
+        fi
+        continue
     else
         break
     fi

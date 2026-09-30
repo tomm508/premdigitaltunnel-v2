@@ -22,14 +22,45 @@ echo -e "\e[36m====================================================\e[0m"
 echo -e "\e[32m             TAMBAH AKUN SSH & WEBSOCKET            \e[0m"
 echo -e "\e[36m====================================================\e[0m"
 
-read -p "Username SSH : " username
-if id "$username" >/dev/null 2>&1; then
-    echo -e "\e[31mUsername '$username' sudah terdaftar!\e[0m"
-    exit 1
-fi
+while true; do
+    read -p "Username SSH : " username
+    username=$(echo "$username" | tr -d "\r\n " | tr -cd "[:alnum:]_")
+    if [ -z "$username" ]; then
+        echo -e "\e[31mUsername tidak boleh kosong!\e[0m"
+        continue
+    fi
+    if id "$username" >/dev/null 2>&1; then
+        echo -e "\e[31mUsername '$username' sudah terdaftar!\e[0m"
+        echo -e " \e[33m[1]\e[0m Masukkan username lain"
+        echo -e " \e[33m[0]\e[0m Kembali ke Menu Utama"
+        read -p " Pilihan [0-1, Default 1]: " opt_dup
+        if [ "$opt_dup" == "0" ]; then
+            menu
+            exit 0
+        fi
+        continue
+    fi
+    break
+done
 
-read -p "Password SSH : " password
-read -p "Durasi (Hari): " masaaktif
+while true; do
+    read -p "Password SSH : " password
+    if [ -z "$password" ]; then
+        echo -e "\e[31mPassword tidak boleh kosong!\e[0m"
+        continue
+    fi
+    break
+done
+
+while true; do
+    read -p "Durasi (Hari, Default 30): " masaaktif
+    [ -z "$masaaktif" ] && masaaktif=30
+    if [[ ! "$masaaktif" =~ ^[0-9]+$ ]] || [ "$masaaktif" -le 0 ]; then
+        echo -e "\e[31mDurasi harus berupa angka positif!\e[0m"
+        continue
+    fi
+    break
+done
 
 echo -e "\e[36m────────────────────────────────────────────────────\e[0m"
 echo -e " \e[33mPILIH JALUR DOMAIN AKUN:\e[0m"
