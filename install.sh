@@ -312,7 +312,7 @@ mkdir -p /usr/local/bin /usr/bin
 rm -f /usr/local/bin/badvpn-udpgw /usr/bin/badvpn-udpgw
 
 # Download binary langsung (Cepat, stabil, tanpa gagal build)
-wget -qO /usr/local/bin/badvpn-udpgw "https://raw.githubusercontent.com/sensiplay/badvpn/master/badvpn-udpgw" || wget -qO /usr/local/bin/badvpn-udpgw "https://github.com/ambrop72/badvpn/raw/master/badvpn-udpgw" || curl -sSL "https://raw.githubusercontent.com/sensiplay/badvpn/master/badvpn-udpgw" -o /usr/local/bin/badvpn-udpgw
+wget -qO /usr/local/bin/badvpn-udpgw "https://raw.githubusercontent.com/daybreakersx/premscript/master/badvpn-udpgw64" || wget -qO /usr/local/bin/badvpn-udpgw "https://github.com/ambrop72/badvpn/raw/master/badvpn-udpgw" || curl -sSL "https://raw.githubusercontent.com/daybreakersx/premscript/master/badvpn-udpgw64" -o /usr/local/bin/badvpn-udpgw
 
 # Jika download binary gagal, lakukan fallback build dari source
 if [ ! -s /usr/local/bin/badvpn-udpgw ]; then
