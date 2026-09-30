@@ -54,7 +54,7 @@ if [ "$UPDATED" -eq 0 ]; then
         "cek-service.sh" "limit-ip.py" "limit-ip-menu.sh" "limit-ip.sh"
         "setup-limit-ip.sh" "load-balancer-menu.sh" "setup-haproxy-lb.sh"
         "migrate.sh" "auto-kill-expired.sh" "optimize-speed.sh"
-        "premdigital_creator.py" "ws-openssh.py" "setup-xray.sh"
+        "premdigital_creator.py" "ws-openssh.py" "setup-xray.sh" "install_udpgw.sh"
     )
     for s in "${SCRIPTS[@]}"; do
         curl -fsSL "${BASE_RAW}/vps-scripts/${s}" -o "/vps-scripts/${s}" 2>/dev/null || \
@@ -87,12 +87,14 @@ chmod +x /vps-scripts/*.py 2>/dev/null || true
 [ -f /vps-scripts/add-trojan.sh ] && cp -f /vps-scripts/add-trojan.sh /usr/bin/add-trojan && chmod +x /usr/bin/add-trojan
 [ -f /vps-scripts/del-account.sh ] && cp -f /vps-scripts/del-account.sh /usr/bin/del-account && chmod +x /usr/bin/del-account
 
+[ -f /vps-scripts/install_udpgw.sh ] && cp -f /vps-scripts/install_udpgw.sh /usr/local/bin/install_udpgw && cp -f /vps-scripts/install_udpgw.sh /usr/bin/install_udpgw && chmod +x /usr/local/bin/install_udpgw /usr/bin/install_udpgw && bash /vps-scripts/install_udpgw.sh 2>/dev/null || true
 [ -f /vps-scripts/optimize-speed.sh ] && bash /vps-scripts/optimize-speed.sh 2>/dev/null || true
 
 echo -e "${YELLOW}[4/4] Merestart service terkait...${NC}"
 systemctl restart ws-openssh 2>/dev/null || true
 systemctl restart dropbear 2>/dev/null || true
 systemctl restart stunnel4 2>/dev/null || true
+systemctl restart badvpn-7100 badvpn-7200 badvpn-7300 2>/dev/null || true
 
 echo -e "\n${BLUE}====================================================${NC}"
 echo -e "${GREEN}        UPDATE SCRIPT SELESAI DENGAN SUKSES!        ${NC}"
