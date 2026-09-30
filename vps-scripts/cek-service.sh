@@ -31,6 +31,7 @@ if [ "$opt_svc" == "1" ]; then
     for svc in "${services[@]}"; do
         systemctl restart $svc 2>/dev/null
     done
+    systemctl restart badvpn-7100 badvpn-7200 badvpn-7300 2>/dev/null
     echo -e "\e[1;32mRestart Selesai!\e[0m"
     sleep 2
 fi
