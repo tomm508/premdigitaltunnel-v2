@@ -12,6 +12,11 @@ cat > /etc/sysctl.d/99-premdigital-turbo.conf << 'EOF'
 net.core.default_qdisc = fq
 net.ipv4.tcp_congestion_control = bbr
 
+# Forwarding & UDP Gaming Optimization
+net.ipv4.ip_forward = 1
+net.ipv4.udp_rmem_min = 16384
+net.ipv4.udp_wmem_min = 16384
+
 # TCP Buffer & Window Scaling (Speedtest & Upload Lancar)
 net.core.rmem_max = 67108864
 net.core.wmem_max = 67108864

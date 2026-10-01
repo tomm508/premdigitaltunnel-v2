@@ -58,7 +58,9 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/badvpn-udpgw --listen-addr 127.0.0.1:7100 --listen-addr [::1]:7100 --max-clients 1000 --max-connections-for-client 500
+LimitNOFILE=65535
+LimitNPROC=65535
+ExecStart=/usr/local/bin/badvpn-udpgw --listen-addr 127.0.0.1:7100 --max-clients 5000 --max-connections-for-client 3000 --udp-mtu 1400 --client-socket-sndbuf 0
 Restart=always
 RestartSec=3s
 
@@ -74,7 +76,9 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/badvpn-udpgw --listen-addr 127.0.0.1:7200 --listen-addr [::1]:7200 --max-clients 1000 --max-connections-for-client 500
+LimitNOFILE=65535
+LimitNPROC=65535
+ExecStart=/usr/local/bin/badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 5000 --max-connections-for-client 3000 --udp-mtu 1400 --client-socket-sndbuf 0
 Restart=always
 RestartSec=3s
 
@@ -90,7 +94,9 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/badvpn-udpgw --listen-addr 127.0.0.1:7300 --listen-addr [::1]:7300 --max-clients 1000 --max-connections-for-client 500
+LimitNOFILE=65535
+LimitNPROC=65535
+ExecStart=/usr/local/bin/badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 5000 --max-connections-for-client 3000 --udp-mtu 1400 --client-socket-sndbuf 0
 Restart=always
 RestartSec=3s
 
