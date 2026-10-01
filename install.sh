@@ -245,7 +245,7 @@ apt-get install -y dropbear
 cat > /etc/default/dropbear << 'END_DROPBEAR'
 NO_START=0
 DROPBEAR_PORT=109
-DROPBEAR_EXTRA_ARGS="-p 127.0.0.1:109 -W 65536 -K 30 -I 60"
+DROPBEAR_EXTRA_ARGS="-p 127.0.0.1:109 -W 131072 -K 15 -I 0"
 DROPBEAR_BANNER="/etc/issue.net"
 DROPBEAR_RECEIVE_WINDOW=65536
 END_DROPBEAR
@@ -261,11 +261,16 @@ cat > /etc/stunnel/stunnel.conf << END_STUNNEL
 cert = /etc/xray/xray.crt
 key = /etc/xray/xray.key
 client = no
+TIMEOUTidle = 86400
+TIMEOUTclose = 0
+TIMEOUTbusy = 300
 socket = a:SO_REUSEADDR=1
 socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
-socket = l:SO_RCVBUF=262144
-socket = r:SO_SNDBUF=262144
+socket = l:SO_KEEPALIVE=1
+socket = r:SO_KEEPALIVE=1
+socket = l:SO_RCVBUF=524288
+socket = r:SO_SNDBUF=524288
 
 [dropbear-stunnel-8443]
 accept = 8443

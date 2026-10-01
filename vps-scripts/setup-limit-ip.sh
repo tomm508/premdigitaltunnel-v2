@@ -23,8 +23,8 @@ chmod 644 /var/log/limit-ip.log
 if [ ! -f /etc/premdigital/limit-ip.conf ]; then
     cat > /etc/premdigital/limit-ip.conf << 'EOF'
 # PremDigital AutoKill Limit IP Configuration
-MAX_IP=2
-AUTOKILL=1
+MAX_IP=3
+AUTOKILL=0
 NOTIF_LOG=1
 EOF
 fi

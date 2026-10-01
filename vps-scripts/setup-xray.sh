@@ -93,6 +93,17 @@ generate_default_config() {
     "error": "/var/log/xray/error.log",
     "loglevel": "warning"
   },
+  "policy": {
+    "levels": {
+      "0": {
+        "handshake": 10,
+        "connIdle": 86400,
+        "uplinkOnly": 0,
+        "downlinkOnly": 0,
+        "bufferSize": 512
+      }
+    }
+  },
   "inbounds": [
     {
       "port": 10001,
