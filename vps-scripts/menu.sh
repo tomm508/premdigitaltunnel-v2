@@ -74,44 +74,25 @@ IFACE=$(ip -4 route ls 2>/dev/null | grep default | grep -Po '(?<=dev )\S+' | he
 [ -z "$IFACE" ] && IFACE=$(ip route 2>/dev/null | grep default | awk '{for(i=1;i<=NF;i++) if($i=="dev") print $(i+1)}' | head -n1)
 [ -z "$IFACE" ] && IFACE=$(ls /sys/class/net 2>/dev/null | grep -vE 'lo|docker|tun|wg|veth' | head -n1)
 
-# Auto Deteksi Kuota Bulanan VPS Berdasarkan Provider (ISP) & Paket Cloud
-QUOTA_FILE="/etc/premdigital/quota.txt"
-if [ -f "$QUOTA_FILE" ]; then
-    MAX_QUOTA=$(cat "$QUOTA_FILE" 2>/dev/null | tr -d '
- ')
-fi
-if [ -z "$MAX_QUOTA" ]; then
-    total_ram_mb=$(free -m 2>/dev/null | awk '/Mem:/ {print $2}')
-    [ -z "$total_ram_mb" ] && total_ram_mb=1000
-    
-    isp_check=$(echo "$ISP" | tr '[:upper:]' '[:lower:]')
-    dmi_check=$(cat /sys/class/dmi/id/sys_vendor /sys/class/dmi/id/product_name 2>/dev/null | tr '[:upper:]' '[:lower:]')
-    
-    if echo "$isp_check $dmi_check" | grep -q "upcloud"; then
-        if [ "$total_ram_mb" -gt 3500 ]; then
-            MAX_QUOTA="5TB"
-        elif [ "$total_ram_mb" -gt 1500 ]; then
-            MAX_QUOTA="4TB"
-        else
-            MAX_QUOTA="2TB"
-        fi
-    elif echo "$isp_check $dmi_check" | grep -qE "digitalocean|do-"; then
-        MAX_QUOTA="Unlimited"
-    elif echo "$isp_check $dmi_check" | grep -qE "contabo|ovh"; then
-        MAX_QUOTA="Unlimited"
-    elif echo "$isp_check" | grep -q "hetzner"; then
-        MAX_QUOTA="20TB"
-    elif echo "$isp_check" | grep -qE "linode|akamai"; then
-        MAX_QUOTA="4TB"
-    elif echo "$isp_check" | grep -qE "aws|amazon|google|gcp|azure"; then
-        MAX_QUOTA="Unlimited"
-    else
-        if [ "$total_ram_mb" -gt 3500 ]; then
-            MAX_QUOTA="5TB"
-        else
-            MAX_QUOTA="Unlimited"
-        fi
-    fi
+# Auto Deteksi Kuota Bulanan VPS Berdasarkan Provider (ISP) & Cloud Murni Otomatis
+total_ram_mb=$(free -m 2>/dev/null | awk '/Mem:/ {print $2}')
+[ -z "$total_ram_mb" ] && total_ram_mb=1000
+
+isp_check=$(echo "$ISP" | tr '[:upper:]' '[:lower:]')
+dmi_check=$(cat /sys/class/dmi/id/sys_vendor /sys/class/dmi/id/product_name 2>/dev/null | tr '[:upper:]' '[:lower:]')
+
+if echo "$isp_check $dmi_check" | grep -q "upcloud"; then
+    MAX_QUOTA="5TB"
+elif echo "$isp_check $dmi_check" | grep -qE "digitalocean|do-|digital ocean"; then
+    MAX_QUOTA="Unlimited"
+elif echo "$isp_check $dmi_check" | grep -qE "contabo|ovh"; then
+    MAX_QUOTA="Unlimited"
+elif echo "$isp_check" | grep -q "hetzner"; then
+    MAX_QUOTA="20TB"
+elif echo "$isp_check" | grep -qE "linode|akamai"; then
+    MAX_QUOTA="4TB"
+else
+    MAX_QUOTA="Unlimited"
 fi
 
 if [ -n "$IFACE" ] && [ -f "/sys/class/net/$IFACE/statistics/tx_bytes" ]; then
