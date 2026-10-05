@@ -69,7 +69,11 @@ if ! /usr/local/bin/xray version >/dev/null 2>&1; then
     
     if [ -s /tmp/xray.zip ]; then
         mkdir -p /tmp/xray_extract
-        unzip -o /tmp/xray.zip -d /tmp/xray_extract/ >/dev/null 2>&1
+        if command -v unzip >/dev/null 2>&1; then
+            unzip -o /tmp/xray.zip -d /tmp/xray_extract/ >/dev/null 2>&1
+        elif command -v python3 >/dev/null 2>&1; then
+            python3 -c "import zipfile; zipfile.ZipFile('/tmp/xray.zip').extractall('/tmp/xray_extract')" >/dev/null 2>&1
+        fi
         cp -f /tmp/xray_extract/xray /usr/local/bin/xray 2>/dev/null
         cp -f /tmp/xray_extract/*.dat /usr/local/share/xray/ 2>/dev/null
         cp -f /tmp/xray_extract/*.dat /usr/local/bin/ 2>/dev/null
@@ -80,7 +84,11 @@ if ! /usr/local/bin/xray version >/dev/null 2>&1; then
     # Fallback ke installer resmi jika masih belum terpasang
     if ! /usr/local/bin/xray version >/dev/null 2>&1; then
         echo -e "\e[33m[INFO] Menggunakan fallback installer resmi XTLS...\e[0m"
-        bash -c "$(curl -sL https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install >/dev/null 2>&1
+        if command -v curl >/dev/null 2>&1; then
+            bash -c "$(curl -sL https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install >/dev/null 2>&1
+        else
+            wget -qO- https://github.com/XTLS/Xray-install/raw/main/install-release.sh | bash -s -- install >/dev/null 2>&1
+        fi
     fi
 fi
 

@@ -322,6 +322,7 @@ mkdir -p /usr/local/bin /usr/bin
 
 # 1. Download precompiled binary siap pakai
 wget -qO /usr/local/bin/badvpn-udpgw "https://raw.githubusercontent.com/daybreakersx/premscript/master/badvpn-udpgw64" || wget -qO /usr/local/bin/badvpn-udpgw "https://raw.githubusercontent.com/tomm508/premdigitaltunnel-v2/main/vps-scripts/badvpn-udpgw" || curl -sSL "https://raw.githubusercontent.com/daybreakersx/premscript/master/badvpn-udpgw64" -o /usr/local/bin/badvpn-udpgw
+chmod +x /usr/local/bin/badvpn-udpgw 2>/dev/null || true
 
 # 2. Jika binary belum ada atau tidak bisa jalan, lakukan native compile langsung dari source resmi
 if [ ! -s /usr/local/bin/badvpn-udpgw ] || ! /usr/local/bin/badvpn-udpgw --version >/dev/null 2>&1; then

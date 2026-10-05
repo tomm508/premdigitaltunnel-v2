@@ -20,6 +20,7 @@ mkdir -p /etc/systemd/system
 echo "[1/4] Menyiapkan binary badvpn-udpgw..."
 # Download binary valid siap pakai
 wget -qO /usr/local/bin/badvpn-udpgw "https://raw.githubusercontent.com/daybreakersx/premscript/master/badvpn-udpgw64" || wget -qO /usr/local/bin/badvpn-udpgw "https://raw.githubusercontent.com/tomm508/premdigitaltunnel-v2/main/vps-scripts/badvpn-udpgw" || curl -sSL "https://raw.githubusercontent.com/daybreakersx/premscript/master/badvpn-udpgw64" -o /usr/local/bin/badvpn-udpgw
+chmod +x /usr/local/bin/badvpn-udpgw 2>/dev/null || true
 
 # Jika binary belum terpasang atau tidak cocok dengan arsitektur CPU, lakukan native compile
 if [ ! -s /usr/local/bin/badvpn-udpgw ] || ! /usr/local/bin/badvpn-udpgw --version >/dev/null 2>&1; then
