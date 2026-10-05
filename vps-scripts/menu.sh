@@ -74,27 +74,7 @@ IFACE=$(ip -4 route ls 2>/dev/null | grep default | grep -Po '(?<=dev )\S+' | he
 [ -z "$IFACE" ] && IFACE=$(ip route 2>/dev/null | grep default | awk '{for(i=1;i<=NF;i++) if($i=="dev") print $(i+1)}' | head -n1)
 [ -z "$IFACE" ] && IFACE=$(ls /sys/class/net 2>/dev/null | grep -vE 'lo|docker|tun|wg|veth' | head -n1)
 
-# Auto Deteksi Kuota Bulanan VPS Berdasarkan Provider (ISP) & Cloud Murni Otomatis
-total_ram_mb=$(free -m 2>/dev/null | awk '/Mem:/ {print $2}')
-[ -z "$total_ram_mb" ] && total_ram_mb=1000
-
-isp_check=$(echo "$ISP" | tr '[:upper:]' '[:lower:]')
-dmi_check=$(cat /sys/class/dmi/id/sys_vendor /sys/class/dmi/id/product_name 2>/dev/null | tr '[:upper:]' '[:lower:]')
-
-if echo "$isp_check $dmi_check" | grep -q "upcloud"; then
-    MAX_QUOTA="5TB"
-elif echo "$isp_check $dmi_check" | grep -qE "digitalocean|do-|digital ocean"; then
-    MAX_QUOTA="Unlimited"
-elif echo "$isp_check $dmi_check" | grep -qE "contabo|ovh"; then
-    MAX_QUOTA="Unlimited"
-elif echo "$isp_check" | grep -q "hetzner"; then
-    MAX_QUOTA="20TB"
-elif echo "$isp_check" | grep -qE "linode|akamai"; then
-    MAX_QUOTA="4TB"
-else
-    MAX_QUOTA="Unlimited"
-fi
-
+# Hitung Bandwidth Real-Time Murni Otomatis dari Network Interface VPS
 if [ -n "$IFACE" ] && [ -f "/sys/class/net/$IFACE/statistics/tx_bytes" ]; then
     TX=$(cat "/sys/class/net/$IFACE/statistics/tx_bytes" 2>/dev/null || echo 0)
     RX=$(cat "/sys/class/net/$IFACE/statistics/rx_bytes" 2>/dev/null || echo 0)
@@ -105,10 +85,22 @@ if [ -n "$IFACE" ] && [ -f "/sys/class/net/$IFACE/statistics/tx_bytes" ]; then
         while(b>1024 && s<5){b/=1024; s++}
         printf "%.2f %s", b, v[s]
     }')
+    TX_FORMAT=$(awk -v b="$TX" 'BEGIN {
+        split("B KB MB GB TB", v);
+        s=1;
+        while(b>1024 && s<5){b/=1024; s++}
+        printf "%.2f %s", b, v[s]
+    }')
+    RX_FORMAT=$(awk -v b="$RX" 'BEGIN {
+        split("B KB MB GB TB", v);
+        s=1;
+        while(b>1024 && s<5){b/=1024; s++}
+        printf "%.2f %s", b, v[s]
+    }')
     [ -z "$BW_FORMAT" ] && BW_FORMAT="0.00 B"
-    BWIDTH="$BW_FORMAT { $MAX_QUOTA }"
+    BWIDTH="$BW_FORMAT (TX: $TX_FORMAT | RX: $RX_FORMAT)"
 else
-    BWIDTH="0.00 B { $MAX_QUOTA }"
+    BWIDTH="0.00 B"
 fi
 
 # Ambil Domain
