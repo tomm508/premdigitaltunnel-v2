@@ -54,7 +54,7 @@ if [ "$UPDATED" -eq 0 ]; then
         "cek-service.sh" "limit-ip.py" "limit-ip-menu.sh" "limit-ip.sh"
         "setup-limit-ip.sh" "load-balancer-menu.sh" "setup-haproxy-lb.sh"
         "migrate.sh" "auto-kill-expired.sh" "optimize-speed.sh"
-        "premdigital_creator.py" "ws-openssh.py" "setup-xray.sh" "install_udpgw.sh"
+        "premdigital_creator.py" "ws-openssh.py" "setup-xray.sh" "set-quota.sh" "install_udpgw.sh"
     )
     for s in "${SCRIPTS[@]}"; do
         curl -fsSL "${BASE_RAW}/vps-scripts/${s}" -o "/vps-scripts/${s}" 2>/dev/null || \
@@ -69,6 +69,7 @@ chmod +x /vps-scripts/*.sh 2>/dev/null || true
 chmod +x /vps-scripts/*.py 2>/dev/null || true
 
 # Salin script utama ke PATH sistem (/usr/bin dan /usr/local/bin)
+[ -f /vps-scripts/set-quota.sh ] && cp -f /vps-scripts/set-quota.sh /usr/local/bin/set-quota && cp -f /vps-scripts/set-quota.sh /usr/bin/set-quota && chmod +x /usr/local/bin/set-quota /usr/bin/set-quota
 [ -f /vps-scripts/menu.sh ] && cp -f /vps-scripts/menu.sh /usr/local/bin/menu && cp -f /vps-scripts/menu.sh /usr/bin/menu && chmod +x /usr/local/bin/menu /usr/bin/menu
 [ -f /vps-scripts/update.sh ] && cp -f /vps-scripts/update.sh /usr/local/bin/update-script && chmod +x /usr/local/bin/update-script
 [ -f /vps-scripts/ws-openssh.py ] && cp -f /vps-scripts/ws-openssh.py /usr/local/bin/ws-openssh && chmod +x /usr/local/bin/ws-openssh
