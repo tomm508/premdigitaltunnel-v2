@@ -142,8 +142,11 @@ echo -e "\e[32m  MEMULAI INSTALASI PREMDIGITAL TUNNELING   \e[0m"
 echo -e "\e[33m============================================\e[0m"
 
 # Install Dependencies
-apt-get update -y
-apt-get install -y wget curl
+# Fix Debian/Ubuntu IPv6 mirror 404 & stale lists
+echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 2>/dev/null || true
+rm -rf /var/lib/apt/lists/* 2>/dev/null || true
+apt-get update -y || true
+apt-get install -y wget curl --fix-missing || true
 
 echo -n "Masukkan Domain VPS Anda (Contoh: vpn.domain.com) [ENTER utk pakai IP]: "
 if [ -e /dev/tty ] && [ -r /dev/tty ]; then
