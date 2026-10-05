@@ -74,18 +74,40 @@ IFACE=$(ip -4 route ls 2>/dev/null | grep default | grep -Po '(?<=dev )\S+' | he
 [ -z "$IFACE" ] && IFACE=$(ip route 2>/dev/null | grep default | awk '{for(i=1;i<=NF;i++) if($i=="dev") print $(i+1)}' | head -n1)
 [ -z "$IFACE" ] && IFACE=$(ls /sys/class/net 2>/dev/null | grep -vE 'lo|docker|tun|wg|veth' | head -n1)
 
+# Baca Kuota Bulanan VPS dari setting user atau default ram-based
+QUOTA_FILE="/etc/premdigital/quota.txt"
+if [ -f "$QUOTA_FILE" ]; then
+    MAX_QUOTA=$(cat "$QUOTA_FILE" 2>/dev/null | tr -d '
+ ')
+fi
+if [ -z "$MAX_QUOTA" ]; then
+    # Auto estimasi kuota standar cloud (1GB RAM ~ 1TB, 2GB ~ 2TB, 4GB ~ 4TB)
+    total_ram_mb=$(free -m | awk '/Mem:/ {print $2}')
+    if [ "$total_ram_mb" -gt 3500 ]; then
+        MAX_QUOTA="4TB"
+    elif [ "$total_ram_mb" -gt 1500 ]; then
+        MAX_QUOTA="2TB"
+    elif [ "$total_ram_mb" -gt 800 ]; then
+        MAX_QUOTA="1TB"
+    else
+        MAX_QUOTA="1TB"
+    fi
+fi
+
 if [ -n "$IFACE" ] && [ -f "/sys/class/net/$IFACE/statistics/tx_bytes" ]; then
     TX=$(cat "/sys/class/net/$IFACE/statistics/tx_bytes" 2>/dev/null || echo 0)
-    TX_FORMAT=$(awk -v tx="$TX" 'BEGIN {
+    RX=$(cat "/sys/class/net/$IFACE/statistics/rx_bytes" 2>/dev/null || echo 0)
+    TOTAL_BYTES=$(( TX + RX ))
+    BW_FORMAT=$(awk -v b="$TOTAL_BYTES" 'BEGIN {
         split("B KB MB GB TB", v);
         s=1;
-        while(tx>1024 && s<5){tx/=1024; s++}
-        printf "%.2f %s", tx, v[s]
+        while(b>1024 && s<5){b/=1024; s++}
+        printf "%.2f %s", b, v[s]
     }')
-    [ -z "$TX_FORMAT" ] && TX_FORMAT="0.00 B"
-    BWIDTH="$TX_FORMAT { 5TB }"
+    [ -z "$BW_FORMAT" ] && BW_FORMAT="0.00 B"
+    BWIDTH="$BW_FORMAT { $MAX_QUOTA }"
 else
-    BWIDTH="0.00 B { 5TB }"
+    BWIDTH="0.00 B { $MAX_QUOTA }"
 fi
 
 # Ambil Domain

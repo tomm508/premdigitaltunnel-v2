@@ -72,6 +72,7 @@ if [ "$1" == "--update-menu" ]; then
     fetch_script "limit-ip-menu.sh" "limit-ip-menu.sh"
     fetch_script "limit-ip.sh" "limit-ip.sh"
     fetch_script "setup-limit-ip.sh" "setup-limit-ip.sh"
+    fetch_script "set-quota.sh" "set-quota.sh"
     fetch_script "load-balancer-menu.sh" "load-balancer-menu.sh"
     fetch_script "setup-haproxy-lb.sh" "setup-haproxy-lb.sh"
 fetch_script "install_udpgw.sh" "install_udpgw.sh"
@@ -100,7 +101,9 @@ fetch_script "install_udpgw.sh" "install_udpgw.sh"
     cp menu.sh /usr/bin/menu
     cp cek-service.sh /usr/bin/cek-service
     cp uninstall.sh /usr/bin/uninstall
-    cp limit-ip.sh /usr/bin/limit-ip
+    cp set-quota.sh /usr/bin/set-quota 2>/dev/null || true
+    cp set-quota.sh /usr/local/bin/set-quota 2>/dev/null || true
+    cp limit-ip.sh /usr/bin/set-quota /usr/local/bin/set-quota /usr/bin/limit-ip
     cp limit-ip.sh /usr/local/bin/limit-ip
     cp limit-ip-menu.sh /usr/local/bin/limit-ip-menu
     cp limit-ip.py /usr/local/bin/limit-ip.py
@@ -126,7 +129,7 @@ CRON_EOF
     chmod 644 /etc/cron.d/auto-kill-expired
     systemctl restart cron 2>/dev/null || systemctl restart crond 2>/dev/null || true
 
-    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip* /usr/local/bin/load-balancer-menu /usr/local/bin/migrate /usr/local/bin/auto-kill-expired /usr/bin/xp
+    chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/set-quota /usr/local/bin/set-quota /usr/bin/limit-ip /usr/local/bin/limit-ip* /usr/local/bin/load-balancer-menu /usr/local/bin/migrate /usr/local/bin/auto-kill-expired /usr/bin/xp
 
     echo -e "\e[32m============================================\e[0m"
     echo -e "\e[32m       UPDATE MENU SELESAI!                 \e[0m"
@@ -192,6 +195,7 @@ fetch_script "limit-ip.py" "limit-ip.py"
 fetch_script "limit-ip-menu.sh" "limit-ip-menu.sh"
 fetch_script "limit-ip.sh" "limit-ip.sh"
 fetch_script "setup-limit-ip.sh" "setup-limit-ip.sh"
+    fetch_script "set-quota.sh" "set-quota.sh"
 fetch_script "load-balancer-menu.sh" "load-balancer-menu.sh"
 fetch_script "setup-haproxy-lb.sh" "setup-haproxy-lb.sh"
 fetch_script "install_udpgw.sh" "install_udpgw.sh"
@@ -220,7 +224,9 @@ cp del-account.sh /usr/bin/del-account
 cp menu.sh /usr/bin/menu
 cp cek-service.sh /usr/bin/cek-service
 cp uninstall.sh /usr/bin/uninstall
-cp limit-ip.sh /usr/bin/limit-ip
+cp set-quota.sh /usr/bin/set-quota 2>/dev/null || true
+    cp set-quota.sh /usr/local/bin/set-quota 2>/dev/null || true
+    cp limit-ip.sh /usr/bin/set-quota /usr/local/bin/set-quota /usr/bin/limit-ip
 cp limit-ip.sh /usr/local/bin/limit-ip
 cp limit-ip-menu.sh /usr/local/bin/limit-ip-menu
 cp limit-ip.py /usr/local/bin/limit-ip.py
@@ -232,7 +238,7 @@ cp migrate.sh /usr/local/bin/migrate
 cp auto-kill-expired.sh /usr/local/bin/auto-kill-expired
 cp auto-kill-expired.sh /usr/bin/auto-kill-expired
 ln -sf /usr/local/bin/auto-kill-expired /usr/bin/xp
-chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/limit-ip /usr/local/bin/limit-ip* /usr/local/bin/load-balancer-menu /usr/local/bin/migrate /usr/local/bin/auto-kill-expired /usr/bin/xp
+chmod +x /usr/bin/add-* /usr/bin/del-* /usr/bin/list-account /usr/bin/menu /usr/bin/cek-service /usr/bin/uninstall /usr/bin/set-quota /usr/local/bin/set-quota /usr/bin/limit-ip /usr/local/bin/limit-ip* /usr/local/bin/load-balancer-menu /usr/local/bin/migrate /usr/local/bin/auto-kill-expired /usr/bin/xp
 
 echo "Mengaktifkan konfigurasi Limit IP 2 Login & AutoKill..."
 bash setup-limit-ip.sh
